@@ -1,6 +1,6 @@
 # &>> agent-tail
 
-agent-tail pipes server output and browser console logs to log files your AI coding agents can read and grep.
+Pipe dev server and browser console logs to log files on your machine that AI coding agents like Claude Code, Amp, and Pi can read and grep.
 
 ![agent-tail demo](https://github.com/gillkyle/agent-tail/raw/refs/heads/main/assets/agent-tail-demo.gif)
 
