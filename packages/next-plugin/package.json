@@ -6,7 +6,7 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/gillkyle/agent-tail",
+        "url": "git+https://github.com/gillkyle/agent-tail.git",
         "directory": "packages/next-plugin"
     },
     "author": "Kyle Gill",
