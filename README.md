@@ -2,6 +2,8 @@
 
 Pipe dev server and browser console logs to log files on your machine that AI coding agents like Claude Code, Amp, and Pi can read and grep.
 
+[Documentation](https://agent-tail.vercel.app/)
+
 ![agent-tail demo](https://github.com/gillkyle/agent-tail/raw/refs/heads/main/assets/agent-tail-demo.gif)
 
 **Try it!**
