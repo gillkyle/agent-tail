@@ -12,22 +12,22 @@ npm install -D next-plugin-agent-tail
 
 ```ts
 // next.config.ts
-import { with_browser_logs } from "next-plugin-agent-tail"
+import { withAgentTail } from "next-plugin-agent-tail"
 
-export default with_browser_logs({
+export default withAgentTail({
     // your Next.js config
 })
 ```
 
 ```tsx
 // app/layout.tsx
-import { BrowserLogsScript } from "next-plugin-agent-tail/script"
+import { AgentTailScript } from "next-plugin-agent-tail/script"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html>
             <head>
-                {process.env.NODE_ENV === "development" && <BrowserLogsScript />}
+                {process.env.NODE_ENV === "development" && <AgentTailScript />}
             </head>
             <body>{children}</body>
         </html>

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import fs from "node:fs"
 import path from "node:path"
 import os from "node:os"
-import { with_browser_logs } from "../../packages/next-plugin/src/with-browser-logs"
+import { withAgentTail } from "../../packages/next-plugin/src/with-browser-logs"
 
 function create_temp_dir(): string {
     return fs.mkdtempSync(path.join(os.tmpdir(), "browser-logs-next-cfg-"))
@@ -12,7 +12,7 @@ function cleanup(dir: string): void {
     fs.rmSync(dir, { recursive: true, force: true })
 }
 
-describe("with_browser_logs", () => {
+describe("withAgentTail", () => {
     let temp_dir: string
     let original_cwd: () => string
 
@@ -31,7 +31,7 @@ describe("with_browser_logs", () => {
     })
 
     it("returns a config with env variables set", () => {
-        const config = with_browser_logs({})
+        const config = withAgentTail({})
 
         expect(config.env?.__BROWSER_LOGS_ENDPOINT).toBe("/__browser-logs")
         expect(config.env?.__BROWSER_LOGS_PATH).toBeTruthy()
@@ -39,7 +39,7 @@ describe("with_browser_logs", () => {
     })
 
     it("preserves existing next config properties", () => {
-        const config = with_browser_logs({
+        const config = withAgentTail({
             reactStrictMode: true,
             env: { CUSTOM: "value" },
         })
@@ -50,7 +50,7 @@ describe("with_browser_logs", () => {
     })
 
     it("creates the log directory structure", () => {
-        with_browser_logs({})
+        withAgentTail({})
 
         const log_dir = path.join(temp_dir, "tmp/logs")
         expect(fs.existsSync(log_dir)).toBe(true)
@@ -64,7 +64,7 @@ describe("with_browser_logs", () => {
             ...config,
             custom: true,
         }))
-        const config = with_browser_logs({ webpack: custom_webpack })
+        const config = withAgentTail({ webpack: custom_webpack })
 
         const result = config.webpack!({ entry: {} }, {})
         expect(custom_webpack).toHaveBeenCalled()
@@ -72,7 +72,7 @@ describe("with_browser_logs", () => {
     })
 
     it("uses custom options", () => {
-        const config = with_browser_logs({}, { endpoint: "/__custom" })
+        const config = withAgentTail({}, { endpoint: "/__custom" })
 
         expect(config.env?.__BROWSER_LOGS_ENDPOINT).toBe("/__custom")
     })

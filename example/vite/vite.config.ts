@@ -1,9 +1,9 @@
 import { defineConfig } from "vite"
-import { browser_logs } from "../../packages/vite-plugin/src"
+import { agentTail } from "../../packages/vite-plugin/src"
 
 export default defineConfig({
     plugins: [
-        browser_logs({
+        agentTail({
             // All defaults shown — uncomment to customize:
             // logDir: "tmp/logs",
             // logFileName: "browser.log",

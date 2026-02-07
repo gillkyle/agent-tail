@@ -13,14 +13,14 @@ describe("agent-tail umbrella exports", () => {
 
     it("re-exports vite plugin", async () => {
         const mod = await import("../../packages/agent-tail/src/vite")
-        expect(mod.browser_logs).toBeDefined()
-        expect(typeof mod.browser_logs).toBe("function")
+        expect(mod.agentTail).toBeDefined()
+        expect(typeof mod.agentTail).toBe("function")
     })
 
     it("re-exports next plugin", async () => {
         const mod = await import("../../packages/agent-tail/src/next")
-        expect(mod.with_browser_logs).toBeDefined()
-        expect(typeof mod.with_browser_logs).toBe("function")
+        expect(mod.withAgentTail).toBeDefined()
+        expect(typeof mod.withAgentTail).toBe("function")
     })
 
     it("re-exports next handler", async () => {
@@ -31,6 +31,6 @@ describe("agent-tail umbrella exports", () => {
 
     it("re-exports next script component", async () => {
         const mod = await import("../../packages/agent-tail/src/script")
-        expect(mod.BrowserLogsScript).toBeDefined()
+        expect(mod.AgentTailScript).toBeDefined()
     })
 })

@@ -1,5 +1,5 @@
-export { with_browser_logs } from "./with-browser-logs"
-export { BrowserLogsScript } from "./script"
+export { withAgentTail } from "./with-browser-logs"
+export { AgentTailScript } from "./script"
 export { POST, pages_handler } from "./handler"
 export type { BrowserLogsOptions, LogEntry, ResolvedOptions } from "agent-tail-core"
 export { DEFAULT_OPTIONS } from "agent-tail-core"

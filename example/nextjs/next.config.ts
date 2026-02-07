@@ -1,5 +1,5 @@
-import { with_browser_logs } from "../../packages/next-plugin/src"
+import { withAgentTail } from "../../packages/next-plugin/src"
 
-export default with_browser_logs({
+export default withAgentTail({
     // your Next.js config
 })

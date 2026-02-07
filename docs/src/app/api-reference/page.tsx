@@ -14,7 +14,7 @@ export default function APIReferencePage() {
 
         <section>
           <h2 id="options">BrowserLogsOptions</h2>
-          <p>All options are optional with sensible defaults. Pass them to <code>browser_logs()</code> (Vite) or <code>with_browser_logs()</code> (Next.js).</p>
+          <p>All options are optional with sensible defaults. Pass them to <code>agentTail()</code> (Vite) or <code>withAgentTail()</code> (Next.js).</p>
           <div className="props-list">
             <div className="prop-item">
               <div className="prop-header">

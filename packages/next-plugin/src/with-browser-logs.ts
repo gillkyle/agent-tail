@@ -7,7 +7,7 @@ interface NextConfig {
     [key: string]: any
 }
 
-export function with_browser_logs(
+export function withAgentTail(
     next_config: NextConfig = {},
     user_options?: BrowserLogsOptions
 ): NextConfig {

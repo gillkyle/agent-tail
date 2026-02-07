@@ -24,10 +24,10 @@ export default function InstallPage() {
           <CodeBlock
             code={`// vite.config.ts
 import { defineConfig } from "vite"
-import { browser_logs } from "vite-plugin-agent-tail"
+import { agentTail } from "vite-plugin-agent-tail"
 
 export default defineConfig({
-    plugins: [browser_logs()],
+    plugins: [agentTail()],
 })`}
             language="typescript"
           />
@@ -41,9 +41,9 @@ export default defineConfig({
           <h3>1. Wrap your Next.js config</h3>
           <CodeBlock
             code={`// next.config.ts
-import { with_browser_logs } from "next-plugin-agent-tail"
+import { withAgentTail } from "next-plugin-agent-tail"
 
-export default with_browser_logs({
+export default withAgentTail({
     // your Next.js config
 })`}
             language="typescript"
@@ -51,13 +51,13 @@ export default with_browser_logs({
           <h3>2. Add the script to your layout</h3>
           <CodeBlock
             code={`// app/layout.tsx
-import { BrowserLogsScript } from "next-plugin-agent-tail/script"
+import { AgentTailScript } from "next-plugin-agent-tail/script"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html>
             <head>
-                {process.env.NODE_ENV === "development" && <BrowserLogsScript />}
+                {process.env.NODE_ENV === "development" && <AgentTailScript />}
             </head>
             <body>{children}</body>
         </html>

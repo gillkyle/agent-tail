@@ -1,1 +1,1 @@
-export { with_browser_logs } from "next-plugin-agent-tail"
+export { withAgentTail } from "next-plugin-agent-tail"

@@ -1,1 +1,1 @@
-export { browser_logs } from "vite-plugin-agent-tail"
+export { agentTail } from "vite-plugin-agent-tail"

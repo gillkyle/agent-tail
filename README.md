@@ -76,10 +76,10 @@ npm install -D vite-plugin-agent-tail
 ```ts
 // vite.config.ts
 import { defineConfig } from "vite"
-import { browser_logs } from "vite-plugin-agent-tail"
+import { agentTail } from "vite-plugin-agent-tail"
 
 export default defineConfig({
-    plugins: [browser_logs()],
+    plugins: [agentTail()],
 })
 ```
 
@@ -97,22 +97,22 @@ npm install -D next-plugin-agent-tail
 
 ```ts
 // next.config.ts
-import { with_browser_logs } from "next-plugin-agent-tail"
+import { withAgentTail } from "next-plugin-agent-tail"
 
-export default with_browser_logs({
+export default withAgentTail({
     // your Next.js config
 })
 ```
 
 ```tsx
 // app/layout.tsx
-import { BrowserLogsScript } from "next-plugin-agent-tail/script"
+import { AgentTailScript } from "next-plugin-agent-tail/script"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html>
             <head>
-                {process.env.NODE_ENV === "development" && <BrowserLogsScript />}
+                {process.env.NODE_ENV === "development" && <AgentTailScript />}
             </head>
             <body>{children}</body>
         </html>
@@ -170,7 +170,7 @@ All options are optional with sensible defaults.
 All options go in a single call — the plugin handles both server and client:
 
 ```ts
-browser_logs({
+agentTail({
     logDir: "tmp/logs",             // Directory for log storage (relative to project root)
     logFileName: "browser.log",     // Log file name within each session
     maxLogSessions: 10,             // Max session directories to keep
@@ -196,9 +196,9 @@ Next.js doesn't have a unified plugin model, so options are split across two cal
 
 ```ts
 // next.config.ts
-import { with_browser_logs } from "next-plugin-agent-tail"
+import { withAgentTail } from "next-plugin-agent-tail"
 
-export default with_browser_logs(
+export default withAgentTail(
     { /* your Next.js config */ },
     {
         logDir: "tmp/logs",             // Directory for log storage (relative to project root)
@@ -214,10 +214,10 @@ export default with_browser_logs(
 
 ```tsx
 // app/layout.tsx
-import { BrowserLogsScript } from "next-plugin-agent-tail/script"
+import { AgentTailScript } from "next-plugin-agent-tail/script"
 
 {process.env.NODE_ENV === "development" && (
-    <BrowserLogsScript
+    <AgentTailScript
         options={{
             flushInterval: 500,             // Client-side flush interval (ms)
             maxBatchSize: 50,               // Max batch size before immediate flush

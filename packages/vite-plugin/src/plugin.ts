@@ -9,7 +9,7 @@ import {
     should_exclude,
 } from "agent-tail-core"
 
-export function browser_logs(user_options?: BrowserLogsOptions): Plugin {
+export function agentTail(user_options?: BrowserLogsOptions): Plugin {
     const options = resolve_options(user_options)
     const log_manager = new LogManager(options)
     let log_path: string

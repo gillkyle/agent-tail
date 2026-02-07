@@ -13,10 +13,10 @@ npm install -D vite-plugin-agent-tail
 ```ts
 // vite.config.ts
 import { defineConfig } from "vite"
-import { browser_logs } from "vite-plugin-agent-tail"
+import { agentTail } from "vite-plugin-agent-tail"
 
 export default defineConfig({
-    plugins: [browser_logs()],
+    plugins: [agentTail()],
 })
 ```
 

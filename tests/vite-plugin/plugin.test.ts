@@ -3,7 +3,7 @@ import fs from "node:fs"
 import path from "node:path"
 import os from "node:os"
 import { EventEmitter } from "node:events"
-import { browser_logs } from "../../packages/vite-plugin/src/plugin"
+import { agentTail } from "../../packages/vite-plugin/src/plugin"
 
 function create_temp_dir(): string {
     return fs.mkdtempSync(path.join(os.tmpdir(), "browser-logs-vite-test-"))
@@ -13,7 +13,7 @@ function cleanup(dir: string): void {
     fs.rmSync(dir, { recursive: true, force: true })
 }
 
-describe("browser_logs vite plugin", () => {
+describe("agentTail vite plugin", () => {
     let temp_dir: string
 
     beforeEach(() => {
@@ -27,17 +27,17 @@ describe("browser_logs vite plugin", () => {
     })
 
     it("returns a plugin with correct name", () => {
-        const plugin = browser_logs()
+        const plugin = agentTail()
         expect(plugin.name).toBe("vite-plugin-agent-tail")
     })
 
     it("only applies during serve", () => {
-        const plugin = browser_logs()
+        const plugin = agentTail()
         expect(plugin.apply).toBe("serve")
     })
 
     it("configures server middleware on the default endpoint", () => {
-        const plugin = browser_logs()
+        const plugin = agentTail()
         const middlewares: Array<[string, Function]> = []
         const mock_server = {
             config: { root: temp_dir },
@@ -56,7 +56,7 @@ describe("browser_logs vite plugin", () => {
     })
 
     it("uses custom endpoint", () => {
-        const plugin = browser_logs({ endpoint: "/__my-logs" })
+        const plugin = agentTail({ endpoint: "/__my-logs" })
         const middlewares: Array<[string, Function]> = []
         const mock_server = {
             config: { root: temp_dir },
@@ -74,7 +74,7 @@ describe("browser_logs vite plugin", () => {
     })
 
     it("writes log entries to the log file via POST", () => {
-        const plugin = browser_logs()
+        const plugin = agentTail()
         let handler: Function = () => {}
         const mock_server = {
             config: { root: temp_dir },
@@ -123,7 +123,7 @@ describe("browser_logs vite plugin", () => {
     })
 
     it("rejects non-POST requests with 405", () => {
-        const plugin = browser_logs()
+        const plugin = agentTail()
         let handler: Function = () => {}
         const mock_server = {
             config: { root: temp_dir },
@@ -146,7 +146,7 @@ describe("browser_logs vite plugin", () => {
     })
 
     it("filters excluded entries server-side", () => {
-        const plugin = browser_logs({ excludes: ["noisy"] })
+        const plugin = agentTail({ excludes: ["noisy"] })
         let handler: Function = () => {}
         const mock_server = {
             config: { root: temp_dir },
@@ -185,7 +185,7 @@ describe("browser_logs vite plugin", () => {
     })
 
     it("transforms index HTML with script injection", () => {
-        const plugin = browser_logs()
+        const plugin = agentTail()
         const result = (plugin as any).transformIndexHtml()
 
         expect(result).toHaveLength(1)
