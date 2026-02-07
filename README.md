@@ -2,7 +2,7 @@
 
 agent-tail pipes server output and browser console logs to log files your AI coding agents can read and grep.
 
-<video src="https://github.com/gillkyle/agent-tail/raw/refs/heads/main/assets/agent-tail-demo.mp4" autoplay loop muted playsinline></video>
+https://github.com/gillkyle/agent-tail/raw/refs/heads/main/assets/agent-tail-demo.mp4
 
 **Try it!**
 
