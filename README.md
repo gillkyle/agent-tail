@@ -2,6 +2,21 @@
 
 Pipe browser console logs to files on disk during development. Tail them in your terminal alongside your backend server and worker logs.
 
+## Table of Contents
+
+- [Packages](#packages)
+- [Quick Start](#quick-start) — [Vite](#vite) | [Next.js](#nextjs)
+- [How It Works](#how-it-works)
+- [Configuration](#configuration)
+- [Log Format](#log-format)
+- [Directory Structure](#directory-structure)
+- [CLI: `agent-tail`](#cli-agent-tail) — [run](#agent-tail-run) | [wrap](#agent-tail-wrap) | [init](#agent-tail-init)
+- [Multi-Server Log Aggregation](#multi-server-log-aggregation)
+- [Searching and Tailing Logs](#searching-and-tailing-logs)
+- [Captured Events](#captured-events)
+- [Agent Setup](#agent-setup)
+- [Why Files, Not MCP](#why-files-not-mcp)
+
 ## Packages
 
 | Package | Description |
@@ -10,7 +25,9 @@ Pipe browser console logs to files on disk during development. Tail them in your
 | [`next-plugin-agent-tail`](./packages/next-plugin) | Next.js plugin |
 | [`agent-tail-core`](./packages/core) | Shared core (types, formatting, log management) |
 
-## Quick Start (Vite)
+## Quick Start
+
+### Vite
 
 ```bash
 npm install -D vite-plugin-agent-tail
@@ -32,7 +49,7 @@ Then in another terminal:
 tail -f tmp/logs/latest/browser.log
 ```
 
-## Quick Start (Next.js)
+### Next.js
 
 ```bash
 npm install -D next-plugin-agent-tail
