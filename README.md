@@ -12,7 +12,7 @@ That's the full cycle: run a command, output is captured to a log file, read the
 
 ## Two ways to use agent-tail
 
-### CLI — capture server output
+### 1. CLI — capture server output
 
 `agent-tail run` wraps any command (or commands!) and pipes their stdout/stderr to log files. Works with any dev server, any language, zero config.
 
@@ -22,13 +22,13 @@ npx agent-tail-core run 'fe: npm run dev' 'api: uv run server'
 
 Each service gets its own log file (`api.log`, `worker.log`) plus a `combined.log` with all output interleaved. See [CLI: `agent-tail`](#cli-agent-tail) for full usage.
 
-### Framework plugins — capture browser console output
+### 2. Framework plugins — capture browser console output
 
 The Vite and Next.js plugins inject a small script into your HTML that intercepts `console.log`, `console.warn`, `console.error`, unhandled errors, and unhandled promise rejections. Captured logs are sent to the dev server and written to `browser.log`.
 
 See [Quick Start](#quick-start) below for setup.
 
-### Use both together
+### Then, use both together
 
 The CLI and framework plugins write to the same session directory. Run your Vite dev server through `agent-tail run` and you get server output *and* browser console logs in one place:
 
@@ -548,5 +548,7 @@ Plain log files beat a protocol server for this use case. ([longer discussion](h
 That said, MCP has real strengths in other contexts. It provides structured, queryable interfaces that are useful for complex data sources (databases, APIs, search indexes) where flat files would be unwieldy. It also works in environments where the agent has no filesystem access, like cloud-hosted IDEs or remote sandboxes. For log capture specifically, files are the better fit — logs are inherently append-only text, and the entire Unix toolchain already exists to search, filter, and tail them.
 
 ## License
+
+© 2026 Kyle Gill
 
 MIT
