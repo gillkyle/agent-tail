@@ -21,7 +21,7 @@ That's the full cycle: run a command, output is captured to a log file, read the
 `agent-tail run` wraps any command (or commands!) and pipes their stdout/stderr to log files. Works with any dev server, any language, zero config.
 
 ```bash
-npx agent-tail-core run 'fe: npm run dev' 'api: uv run server'
+agent-tail run 'fe: npm run dev' 'api: uv run server'
 ```
 
 Each service gets its own log file (`api.log`, `worker.log`) plus a `combined.log` with all output interleaved. See [CLI: `agent-tail`](#cli-agent-tail) for full usage.
@@ -56,11 +56,19 @@ agent-tail run 'fe: npm run dev' 'api: uv run server'
 - [Searching and Tailing Logs](#searching-and-tailing-logs)
 - [Agent Setup](#agent-setup)
 - [Why Files, Not MCP](#why-files-not-mcp)
+- [FAQ](#faq)
 
 ## Packages
 
+Install the umbrella package to get everything:
+
+```bash
+npm install -D agent-tail
+```
+
 | Package | Description |
 |---------|-------------|
+| [`agent-tail`](./packages/agent-tail) | Umbrella package — includes CLI, Vite plugin, and Next.js plugin |
 | [`agent-tail-core`](./packages/core) | CLI and shared core (types, formatting, log management) |
 | [`vite-plugin-agent-tail`](./packages/vite-plugin) | Vite plugin — browser console capture |
 | [`next-plugin-agent-tail`](./packages/next-plugin) | Next.js plugin — browser console capture |
@@ -70,13 +78,13 @@ agent-tail run 'fe: npm run dev' 'api: uv run server'
 ### Vite
 
 ```bash
-npm install -D vite-plugin-agent-tail
+npm install -D agent-tail
 ```
 
 ```ts
 // vite.config.ts
 import { defineConfig } from "vite"
-import { agentTail } from "vite-plugin-agent-tail"
+import { agentTail } from "agent-tail/vite"
 
 export default defineConfig({
     plugins: [agentTail()],
@@ -92,12 +100,12 @@ tail -f tmp/logs/latest/browser.log
 ### Next.js
 
 ```bash
-npm install -D next-plugin-agent-tail
+npm install -D agent-tail
 ```
 
 ```ts
 // next.config.ts
-import { withAgentTail } from "next-plugin-agent-tail"
+import { withAgentTail } from "agent-tail/next"
 
 export default withAgentTail({
     // your Next.js config
@@ -106,7 +114,7 @@ export default withAgentTail({
 
 ```tsx
 // app/layout.tsx
-import { AgentTailScript } from "next-plugin-agent-tail/script"
+import { AgentTailScript } from "agent-tail/next/script"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -122,7 +130,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ```ts
 // app/api/__browser-logs/route.ts
-export { POST } from "next-plugin-agent-tail/handler"
+export { POST } from "agent-tail/next/handler"
 ```
 
 ## How It Works
@@ -196,7 +204,7 @@ Next.js doesn't have a unified plugin model, so options are split across two cal
 
 ```ts
 // next.config.ts
-import { withAgentTail } from "next-plugin-agent-tail"
+import { withAgentTail } from "agent-tail/next"
 
 export default withAgentTail(
     { /* your Next.js config */ },
@@ -214,7 +222,7 @@ export default withAgentTail(
 
 ```tsx
 // app/layout.tsx
-import { AgentTailScript } from "next-plugin-agent-tail/script"
+import { AgentTailScript } from "agent-tail/next/script"
 
 {process.env.NODE_ENV === "development" && (
     <AgentTailScript
@@ -234,7 +242,7 @@ The API route handler requires no configuration — it reads the log path from e
 
 ```ts
 // app/api/__browser-logs/route.ts
-export { POST } from "next-plugin-agent-tail/handler"
+export { POST } from "agent-tail/next/handler"
 ```
 
 </details>
@@ -280,10 +288,10 @@ Disable with `captureErrors: false` and `captureRejections: false`.
 
 ## CLI: `agent-tail`
 
-The `agent-tail` CLI wraps any dev server command (or commands!) and pipes their output into the unified log session. Install it from the core package:
+The `agent-tail` CLI wraps any dev server command (or commands!) and pipes their output into the unified log session.
 
 ```bash
-npm install -D agent-tail-core
+npm install -D agent-tail
 ```
 
 ### `agent-tail run`
@@ -310,7 +318,7 @@ This:
 Works with a single service too — no need to reach for `wrap`:
 
 ```bash
-npx agent-tail run 'api: uv run server'
+agent-tail run 'api: uv run server'
 ```
 
 ### `agent-tail init` + `agent-tail wrap`
@@ -321,13 +329,13 @@ If you need more control over when the session is created or want to start servi
 
 ```bash
 # Terminal 1: Create the session
-npx agent-tail init
+agent-tail init
 
 # Terminal 2: Wrap the API server (joins the session)
-npx agent-tail wrap api -- uv run fastapi-server
+agent-tail wrap api -- uv run fastapi-server
 
 # Terminal 3: Wrap the worker (joins the same session)
-npx agent-tail wrap worker -- uv run celery-worker
+agent-tail wrap worker -- uv run celery-worker
 ```
 
 This is also useful when a framework plugin (Vite or Next.js) already created the session — `wrap` detects it and writes to the same directory:
@@ -337,7 +345,7 @@ This is also useful when a framework plugin (Vite or Next.js) already created th
 npm run dev
 
 # Terminal 2: Wrap additional services into the same session
-npx agent-tail wrap api -- uv run fastapi-server
+agent-tail wrap api -- uv run fastapi-server
 ```
 
 If no session exists when `wrap` is called, it creates one automatically.
@@ -377,10 +385,10 @@ If you prefer running each service in its own terminal (see [`init` + `wrap`](#a
 npm run dev
 
 # Terminal 2: Wrap the API server (joins the session)
-npx agent-tail wrap api -- npm run dev:api
+agent-tail wrap api -- npm run dev:api
 
 # Terminal 3: Wrap the worker (joins the same session)
-npx agent-tail wrap worker -- uv run celery-worker
+agent-tail wrap worker -- uv run celery-worker
 
 # Terminal 4: Tail everything
 tail -f tmp/logs/latest/*.log
@@ -551,6 +559,28 @@ Plain log files beat a protocol server for this use case. ([longer discussion](h
 - **Works across every stack** — every language can append to a file. Not every stack has a clean MCP SDK.
 
 That said, MCP has real strengths in other contexts. It provides structured, queryable interfaces that are useful for complex data sources (databases, APIs, search indexes) where flat files would be unwieldy. It also works in environments where the agent has no filesystem access, like cloud-hosted IDEs or remote sandboxes. For log capture specifically, files are the better fit — logs are inherently append-only text, and the entire Unix toolchain already exists to search, filter, and tail them.
+
+## FAQ
+
+### Which package should I install?
+
+Install `agent-tail` — it's the umbrella package that includes the CLI, Vite plugin, and Next.js plugin. One install, all features:
+
+```bash
+npm install -D agent-tail
+```
+
+### Can I install the smaller packages separately?
+
+Yes. If you only need one piece, you can install it directly:
+
+| Package | What it includes |
+|---------|-----------------|
+| `agent-tail-core` | CLI only (`agent-tail run`, `agent-tail wrap`, `agent-tail init`) |
+| `vite-plugin-agent-tail` | Vite plugin only (import from `"vite-plugin-agent-tail"`) |
+| `next-plugin-agent-tail` | Next.js plugin only (import from `"next-plugin-agent-tail"`, `"next-plugin-agent-tail/script"`, `"next-plugin-agent-tail/handler"`) |
+
+The umbrella `agent-tail` package re-exports everything from these packages, so you only need one install.
 
 ## License
 

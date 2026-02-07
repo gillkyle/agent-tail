@@ -30,7 +30,7 @@ const faqCategories: FAQCategory[] = [
 			{
 				question: "Which frameworks are supported?",
 				answer:
-					"There are dedicated plugins for <strong>Vite</strong> (<code>vite-plugin-agent-tail</code>) and <strong>Next.js</strong> (<code>next-plugin-agent-tail</code>). The CLI (<code>agent-tail-core</code>) works with any dev server command.",
+					"There are dedicated plugins for <strong>Vite</strong> (import from <code>agent-tail/vite</code>) and <strong>Next.js</strong> (import from <code>agent-tail/next</code>). The CLI works with any dev server command.",
 			},
 			{
 				question: "What console methods are captured?",
@@ -66,6 +66,21 @@ const faqCategories: FAQCategory[] = [
 				question: "Can multiple servers write to the same session?",
 				answer:
 					"Yes! This is a core feature. Use <code>agent-tail run</code> to start everything from one command, or use <code>agent-tail wrap</code> to add services to an existing session. Each service gets its own log file, plus a <code>combined.log</code> with everything interleaved.",
+			},
+		],
+	},
+	{
+		title: "Packages",
+		items: [
+			{
+				question: "Which package should I install?",
+				answer:
+					'Install <code>agent-tail</code> &mdash; it\'s the umbrella package that includes the CLI, Vite plugin, and Next.js plugin. One install, all features: <code>npm install -D agent-tail</code>.',
+			},
+			{
+				question: "Can I install the smaller packages separately?",
+				answer:
+					"Yes. If you only need one piece, you can install it directly:<br/><br/><strong>agent-tail-core</strong> &mdash; CLI only (<code>agent-tail run</code>, <code>agent-tail wrap</code>, <code>agent-tail init</code>). Import from <code>\"agent-tail-core\"</code>.<br/><br/><strong>vite-plugin-agent-tail</strong> &mdash; Vite plugin only. Import from <code>\"vite-plugin-agent-tail\"</code>.<br/><br/><strong>next-plugin-agent-tail</strong> &mdash; Next.js plugin only. Import from <code>\"next-plugin-agent-tail\"</code>, <code>\"next-plugin-agent-tail/script\"</code>, <code>\"next-plugin-agent-tail/handler\"</code>.<br/><br/>The umbrella <code>agent-tail</code> package re-exports everything from these packages, so you only need one install.",
 			},
 		],
 	},

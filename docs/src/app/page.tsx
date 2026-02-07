@@ -67,7 +67,7 @@ const IconCopyAnimated = ({
 
 function InstallSnippet() {
 	const [copied, setCopied] = useState(false);
-	const command = "npm install agent-tail-core";
+	const command = "npm install agent-tail";
 
 	const handleCopy = async () => {
 		await navigator.clipboard.writeText(command);
@@ -135,7 +135,7 @@ export default function OverviewPage() {
 						any language, zero config.
 					</p>
 					<CodeBlock
-						code={`npx agent-tail-core run 'fe: npm run dev' 'api: uv run server'`}
+						code={`agent-tail run 'fe: npm run dev' 'api: uv run server'`}
 						language="bash"
 						copyable
 					/>
@@ -158,17 +158,17 @@ export default function OverviewPage() {
 				<section>
 					<h2>Quick start (Vite)</h2>
 					<CodeBlock
-						code={`npm install -D vite-plugin-agent-tail`}
+						code={`npm install -D agent-tail`}
 						language="bash"
 						copyable
 					/>
 					<CodeBlock
 						code={`// vite.config.ts
 import { defineConfig } from "vite"
-import { browser_logs } from "vite-plugin-agent-tail"
+import { agentTail } from "agent-tail/vite"
 
 export default defineConfig({
-    plugins: [browser_logs()],
+    plugins: [agentTail()],
 })`}
 						language="typescript"
 					/>
@@ -180,7 +180,7 @@ export default defineConfig({
 					/>
 					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
 						Or skip the plugin entirely and use the CLI:{" "}
-						<code>npx agent-tail-core run &apos;fe: npm run dev&apos;</code>
+						<code>agent-tail run &apos;fe: npm run dev&apos;</code>
 					</p>
 				</section>
 

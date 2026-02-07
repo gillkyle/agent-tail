@@ -1,6 +1,6 @@
 # Publishing
 
-All three packages are published to npm under public access and share the same version number.
+All four packages are published to npm under public access and share the same version number.
 
 ## Prerequisites
 
@@ -16,9 +16,10 @@ pnpm -r run build
 pnpm publish --access public --otp=<CODE> ./packages/core
 pnpm publish --access public --otp=<CODE> ./packages/vite-plugin
 pnpm publish --access public --otp=<CODE> ./packages/next-plugin
+pnpm publish --access public --otp=<CODE> ./packages/agent-tail
 ```
 
-Core must be published first since the other two depend on it.
+Core must be published first since the other packages depend on it. The umbrella `agent-tail` package should be published last.
 
 > **Important:** Always use `pnpm publish` (not `npm publish`). pnpm automatically replaces `workspace:^` with the real version range (e.g. `^0.1.0`) at publish time. Using `npm publish` will leave the raw `workspace:` protocol in the published package, breaking installs for consumers.
 
@@ -43,6 +44,7 @@ pnpm -r run build
 pnpm publish --access public --otp=<CODE> ./packages/core
 pnpm publish --access public --otp=<CODE> ./packages/vite-plugin
 pnpm publish --access public --otp=<CODE> ./packages/next-plugin
+pnpm publish --access public --otp=<CODE> ./packages/agent-tail
 git push && git push --tags
 ```
 
@@ -57,7 +59,7 @@ git push && git push --tags
 
 ## Notes
 
-- All three packages are versioned in lockstep (same version number).
+- All four packages are versioned in lockstep (same version number).
 - The `release` script uses `--no-git-checks` because the build step generates dist files that make the working tree dirty.
 - npm 2FA is enabled, so every publish requires an `--otp` code from your authenticator.
 - `workspace:^` dependencies are resolved to real version ranges automatically by pnpm at publish time. **Never use `npm publish`** — it does not resolve the `workspace:` protocol.

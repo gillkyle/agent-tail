@@ -2,6 +2,8 @@
 
 CLI and shared core for [agent-tail](https://agent-tail.vercel.app/) — pipes server output and browser console logs to log files your AI coding agents can read and `grep`.
 
+> **Tip:** Install the umbrella [`agent-tail`](https://www.npmjs.com/package/agent-tail) package to get the CLI, Vite plugin, and Next.js plugin in one install: `npm install -D agent-tail`
+
 ## Quick start
 
 ```bash

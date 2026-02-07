@@ -20,11 +20,11 @@ export default function InstallPage() {
 
         <section>
           <h2 id="vite">Vite</h2>
-          <CodeBlock code="npm install -D vite-plugin-agent-tail" language="bash" copyable />
+          <CodeBlock code="npm install -D agent-tail" language="bash" copyable />
           <CodeBlock
             code={`// vite.config.ts
 import { defineConfig } from "vite"
-import { agentTail } from "vite-plugin-agent-tail"
+import { agentTail } from "agent-tail/vite"
 
 export default defineConfig({
     plugins: [agentTail()],
@@ -37,11 +37,11 @@ export default defineConfig({
 
         <section>
           <h2 id="nextjs">Next.js</h2>
-          <CodeBlock code="npm install -D next-plugin-agent-tail" language="bash" copyable />
+          <CodeBlock code="npm install -D agent-tail" language="bash" copyable />
           <h3>1. Wrap your Next.js config</h3>
           <CodeBlock
             code={`// next.config.ts
-import { withAgentTail } from "next-plugin-agent-tail"
+import { withAgentTail } from "agent-tail/next"
 
 export default withAgentTail({
     // your Next.js config
@@ -51,7 +51,7 @@ export default withAgentTail({
           <h3>2. Add the script to your layout</h3>
           <CodeBlock
             code={`// app/layout.tsx
-import { AgentTailScript } from "next-plugin-agent-tail/script"
+import { AgentTailScript } from "agent-tail/next/script"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -68,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <h3>3. Create the API route</h3>
           <CodeBlock
             code={`// app/api/__browser-logs/route.ts
-export { POST } from "next-plugin-agent-tail/handler"`}
+export { POST } from "agent-tail/next/handler"`}
             language="typescript"
           />
         </section>
@@ -78,7 +78,7 @@ export { POST } from "next-plugin-agent-tail/handler"`}
           <p>
             The <code>agent-tail</code> CLI wraps any dev server command (or commands!) and pipes their output into the unified log session.
           </p>
-          <CodeBlock code="npm install -D agent-tail-core" language="bash" copyable />
+          <CodeBlock code="npm install -D agent-tail" language="bash" copyable />
           <h3><code>agent-tail run</code></h3>
           <p>Start everything with unified logging:</p>
           <CodeBlock

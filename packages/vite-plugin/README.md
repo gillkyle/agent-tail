@@ -2,10 +2,12 @@
 
 Vite plugin for [agent-tail](https://agent-tail.vercel.app/) — captures browser `console.log`, `console.warn`, `console.error`, unhandled errors, and unhandled promise rejections to log files on disk during development.
 
+> **Tip:** Install the umbrella [`agent-tail`](https://www.npmjs.com/package/agent-tail) package to get the CLI, Vite plugin, and Next.js plugin in one install: `npm install -D agent-tail`
+
 ## Install
 
 ```bash
-npm install -D vite-plugin-agent-tail
+npm install -D agent-tail
 ```
 
 ## Setup
@@ -13,7 +15,7 @@ npm install -D vite-plugin-agent-tail
 ```ts
 // vite.config.ts
 import { defineConfig } from "vite"
-import { agentTail } from "vite-plugin-agent-tail"
+import { agentTail } from "agent-tail/vite"
 
 export default defineConfig({
     plugins: [agentTail()],
@@ -35,7 +37,7 @@ The plugin injects a small script into your HTML that intercepts console methods
 Use both the plugin and the CLI to get browser console logs *and* server output in one place:
 
 ```bash
-npx agent-tail-core run 'fe: npm run dev' 'api: uvicorn main:app'
+agent-tail run 'fe: npm run dev' 'api: uvicorn main:app'
 ```
 
 ## Docs
