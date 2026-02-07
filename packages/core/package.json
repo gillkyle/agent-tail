@@ -1,8 +1,15 @@
 {
     "name": "agent-tail-core",
     "type": "module",
-    "version": "0.1.0",
+    "version": "0.0.1",
     "description": "Core utilities for agent-tail log capture plugins.",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gillkyle/agent-tail",
+        "directory": "packages/core"
+    },
+    "author": "Kyle Gill",
     "exports": {
         ".": {
             "import": "./dist/index.mjs",

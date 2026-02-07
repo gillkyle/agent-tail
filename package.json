@@ -5,7 +5,11 @@
         "build": "pnpm -r run build",
         "test": "vitest run",
         "test:watch": "vitest",
-        "typecheck": "pnpm -r run typecheck"
+        "typecheck": "pnpm -r run typecheck",
+        "release": "pnpm -r run build && pnpm -r publish --access public",
+        "version:patch": "pnpm -r exec -- npm version patch --no-git-tag-version",
+        "version:minor": "pnpm -r exec -- npm version minor --no-git-tag-version",
+        "version:major": "pnpm -r exec -- npm version major --no-git-tag-version"
     },
     "devDependencies": {
         "@types/node": "^22.0.0",
