@@ -97,6 +97,17 @@ browser_logs({
 })
 ```
 
+## .gitignore Setup
+
+Add your log directory to `.gitignore` to keep logs out of version control:
+
+```
+# .gitignore
+tmp/
+```
+
+The plugin warns on startup if the log directory isn't gitignored. Disable with `warnOnMissingGitignore: false`.
+
 ## Log Format
 
 ```
@@ -130,14 +141,6 @@ your-project/
 └── vite.config.ts
 ```
 
-## .gitignore Setup
-
-The plugin warns if your log directory isn't covered by `.gitignore`. Add:
-
-```gitignore
-tmp/
-```
-
 ## CLI: `agent-tail`
 
 The `agent-tail` CLI wraps any dev server command and pipes its output into the unified log session. Install it from the core package:
@@ -146,13 +149,35 @@ The `agent-tail` CLI wraps any dev server command and pipes its output into the 
 npm install -D agent-tail-core
 ```
 
-### `agent-tail init`
+### `agent-tail run`
 
-Creates a new log session directory and prints the path:
+The easiest way to use agent-tail is to add a script to your `package.json`:
+
+```json
+{
+    "scripts": {
+        "dev": "agent-tail run 'fe: npm run dev' 'api: uv run server' 'worker: uv run worker'"
+    }
+}
+```
+
+Then `npm run dev` starts everything with unified logging. Each service argument is `"name: command"`.
+
+This:
+- Creates a new session directory
+- Spawns all services concurrently
+- Prefixes each line with `[name]` in the terminal (color-coded)
+- Writes individual log files (`fe.log`, `api.log`, `worker.log`)
+- Writes a `combined.log` with all output interleaved
+
+If you prefer a shell script, you can also use multi-line syntax:
 
 ```bash
-npx agent-tail init
-# Output: /path/to/your-project/tmp/logs/2024-01-15T10-30-00-123Z
+#!/bin/bash
+npx agent-tail run \
+  "fe: npm run dev:frontend" \
+  "api: uv run fastapi-server" \
+  "worker: uv run celery-worker"
 ```
 
 ### `agent-tail wrap`
@@ -168,23 +193,14 @@ This creates `api.log` and `worker.log` in the latest session directory. Output 
 
 If no session exists yet, `wrap` creates one automatically. If a session already exists (e.g. started by the Vite plugin), it reuses it.
 
-### `agent-tail run`
+### `agent-tail init`
 
-Runs multiple services concurrently with colored, prefixed terminal output:
+Creates a new log session directory and prints the path:
 
 ```bash
-npx agent-tail run \
-  "fe: npm run dev" \
-  "api: uv run fastapi-server" \
-  "worker: uv run celery-worker"
+npx agent-tail init
+# Output: /path/to/your-project/tmp/logs/2024-01-15T10-30-00-123Z
 ```
-
-This is the all-in-one command. It:
-- Creates a new session directory
-- Spawns all services concurrently
-- Prefixes each line with `[name]` in the terminal (color-coded)
-- Writes individual log files (`fe.log`, `api.log`, `worker.log`)
-- Writes a `combined.log` with all output interleaved
 
 ### CLI Options
 
@@ -194,59 +210,25 @@ This is the all-in-one command. It:
 --no-combined         Don't write to combined.log
 ```
 
-### Example: Full-Stack Dev Script
+## Multi-Server Log Aggregation
 
-Add to your `package.json`:
+There are three ways to unify logs from multiple servers:
+
+### Use `agent-tail run` (recommended)
+
+Run everything from one command. Add it to `package.json` and forget about it:
 
 ```json
 {
     "scripts": {
-        "dev": "agent-tail run \"fe: npm run dev:frontend\" \"api: uv run server\" \"worker: uv run worker\""
+        "dev": "agent-tail run 'fe: npm run dev' 'api: uv run server' 'worker: python -m celery worker'"
     }
 }
 ```
 
-Or as a shell script (`scripts/dev.sh`):
-
-```bash
-#!/bin/bash
-npx agent-tail run \
-  "fe: npm run dev:frontend" \
-  "api: uv run fastapi-server" \
-  "worker: uv run celery-worker"
-```
-
-Then tail specific logs:
-
-```bash
-# All logs
-tail -f tmp/logs/latest/*.log
-
-# Just the API
-tail -f tmp/logs/latest/api.log
-
-# Combined with interleaved output
-tail -f tmp/logs/latest/combined.log
-```
-
-## Multi-Server Log Aggregation
-
-There are two approaches to unifying logs from multiple servers:
-
-### Approach 1: Use `agent-tail run` (recommended)
-
-The simplest approach — run everything from one command:
-
-```bash
-npx agent-tail run \
-  "fe: npm run dev" \
-  "api: uv run server" \
-  "worker: python -m celery worker"
-```
-
 All output goes to the same session automatically. The Vite plugin still captures browser console logs via its injected script.
 
-### Approach 2: Wrap services independently
+### Wrap services independently
 
 If you prefer running each service in its own terminal:
 
@@ -266,7 +248,7 @@ tail -f tmp/logs/latest/*.log
 
 The `wrap` command detects the existing session created by the Vite/Next plugin and writes to the same directory.
 
-### Approach 3: Direct file writes (no CLI needed)
+### Direct file writes (no CLI needed)
 
 If your server has its own logging configuration, point it at the `latest` symlink:
 
@@ -334,7 +316,7 @@ f, _ := os.OpenFile(filepath.Join(logDir, "server.log"),
 log.SetOutput(f)
 ```
 
-### Searching and Tailing Logs
+## Searching and Tailing Logs
 
 All commands below should be run from your **project root** (where `tmp/logs/` lives).
 
