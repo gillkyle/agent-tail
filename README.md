@@ -512,24 +512,25 @@ rg "fetch.*failed" tmp/logs/latest/browser.log -C 3
 
 ## Agent Setup
 
-To get the most out of agent-tail, tell your AI agent where the logs are. Add a snippet like this to your project's agent instructions file (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `SKILLS.md`, or equivalent):
+To get the most out of agent-tail, tell your AI agent where the logs are. Add a snippet like this to your project's agent instructions file (Claude Code uses `CLAUDE.md`, Amp uses `AGENTS.md`, Cursor uses `.cursorrules`, Pi uses `SKILLS.md`):
 
 ```markdown
 ## Dev Logs
 
 All dev server output is piped to `tmp/logs/`. The latest session is
-symlinked at `tmp/logs/latest/`. Browser console output (console.log,
-console.warn, console.error, unhandled errors, unhandled promise rejections)
-is automatically captured to `tmp/logs/latest/browser.log` via a Vite plugin
-during development.
+symlinked at `tmp/logs/latest/`. Each service gets its own log file
+(e.g. `fe.log`, `api.log`) plus a `combined.log` with all output
+interleaved. Browser console output (console.log, console.warn,
+console.error, unhandled errors, unhandled promise rejections) is
+automatically captured via a framework plugin during development.
 
 When debugging, always check recent logs before guessing:
 
     grep -ri "error\|warn" tmp/logs/latest/
-    tail -50 tmp/logs/latest/browser.log
+    tail -50 tmp/logs/latest/combined.log
 ```
 
-This gives the agent passive context about where runtime truth lives, so it reads logs instead of speculating.
+This gives agents like Claude Code, Amp, and Pi passive context about where runtime truth lives, so they read logs instead of speculating.
 
 ## Why Files, Not MCP
 
