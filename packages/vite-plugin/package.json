@@ -1,0 +1,30 @@
+{
+    "name": "vite-plugin-agent-tail",
+    "type": "module",
+    "version": "0.1.0",
+    "description": "Vite plugin for agent-tail — pipes browser console logs to files on disk during development.",
+    "keywords": ["vite", "vite-plugin", "browser-logs", "console", "logging"],
+    "exports": {
+        ".": {
+            "import": "./dist/index.mjs",
+            "types": "./dist/index.d.mts"
+        }
+    },
+    "main": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
+    "files": ["dist"],
+    "scripts": {
+        "build": "tsdown",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "agent-tail-core": "workspace:*"
+    },
+    "peerDependencies": {
+        "vite": ">=5.0.0"
+    },
+    "devDependencies": {
+        "tsdown": "^0.18.1",
+        "vite": "^6.0.0"
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "name": "agent-tail-core",
+    "type": "module",
+    "version": "0.1.0",
+    "description": "Core utilities for agent-tail log capture plugins.",
+    "exports": {
+        ".": {
+            "import": "./dist/index.mjs",
+            "types": "./dist/index.d.mts"
+        }
+    },
+    "main": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
+    "files": ["dist"],
+    "scripts": {
+        "build": "tsdown",
+        "typecheck": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "tsdown": "^0.18.1"
+    }
+}

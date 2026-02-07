@@ -1,0 +1,15 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "pnpm -r run build",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "typecheck": "pnpm -r run typecheck"
+    },
+    "devDependencies": {
+        "@types/node": "^22.0.0",
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.16"
+    }
+}
