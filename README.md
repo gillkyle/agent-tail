@@ -96,7 +96,12 @@ export { POST } from "next-plugin-agent-tail/handler"
 
 ## Configuration
 
-All options are optional with sensible defaults:
+All options are optional with sensible defaults.
+
+<details>
+<summary><strong>Vite</strong></summary>
+
+All options go in a single call — the plugin handles both server and client:
 
 ```ts
 browser_logs({
@@ -113,6 +118,60 @@ browser_logs({
     captureRejections: true,        // Capture unhandled promise rejections
 })
 ```
+
+</details>
+
+<details>
+<summary><strong>Next.js</strong></summary>
+
+Next.js doesn't have a unified plugin model, so options are split across two call sites depending on whether they affect the server or the client.
+
+**Server-side options** go in the config wrapper (second argument):
+
+```ts
+// next.config.ts
+import { with_browser_logs } from "next-plugin-agent-tail"
+
+export default with_browser_logs(
+    { /* your Next.js config */ },
+    {
+        logDir: "tmp/logs",             // Directory for log storage (relative to project root)
+        logFileName: "browser.log",     // Log file name within each session
+        maxLogSessions: 10,             // Max session directories to keep
+        endpoint: "/__browser-logs",    // Server endpoint for log ingestion
+        warnOnMissingGitignore: true,   // Warn if logDir isn't gitignored
+    }
+)
+```
+
+**Client-side options** go on the script component:
+
+```tsx
+// app/layout.tsx
+import { BrowserLogsScript } from "next-plugin-agent-tail/script"
+
+{process.env.NODE_ENV === "development" && (
+    <BrowserLogsScript
+        options={{
+            flushInterval: 500,             // Client-side flush interval (ms)
+            maxBatchSize: 50,               // Max batch size before immediate flush
+            maxSerializeLength: 2000,       // Max serialized object length
+            levels: ["log", "warn", "error", "info", "debug"],
+            captureErrors: true,            // Capture unhandled window errors
+            captureRejections: true,        // Capture unhandled promise rejections
+        }}
+    />
+)}
+```
+
+The API route handler requires no configuration — it reads the log path from environment variables set by the config wrapper:
+
+```ts
+// app/api/__browser-logs/route.ts
+export { POST } from "next-plugin-agent-tail/handler"
+```
+
+</details>
 
 ## .gitignore Setup
 
