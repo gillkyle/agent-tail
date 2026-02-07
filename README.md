@@ -423,16 +423,21 @@ This gives the agent passive context about where runtime truth lives, so it read
 
 ## Why Files, Not MCP
 
-A dumb local log drain beats a "smart" protocol for agent workflows. ([longer discussion](https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/))
+Plain log files beat a protocol server for this use case. ([longer discussion](https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/))
 
-- **Universal** — works with any agent, any editor, `tail`, `grep`, `jq`. MCP only works with agents that support it.
+- **Universal** — works with any agent, any editor, `tail`, `grep`, `jq`, `awk`. MCP only works with agents that explicitly support it.
 - **No moving parts** — `appendFile()` vs. a server process + protocol + tool registration + connection lifecycle. Any of those can fail silently.
 - **Zero connection state** — the file is a persistent timeline, not a live stream you can miss. No "was I connected when the error happened?"
-- **Deterministic for agents** — "read the last 200 lines of `tmp/logs/latest/browser.log`" beats hoping the model calls a tool correctly.
+- **Composable** — pipe output through `grep`, chain with `awk`, redirect to another file, or process with code. MCP tool results have to pass through the agent's context window to be combined or persisted.
+- **Token efficient** — reading a file costs nothing in tool descriptions. MCP servers register tool schemas that consume context on every turn (popular browser-tools MCP servers use 13–18k tokens just in tool definitions).
+- **Deterministic for agents** — "read the last 200 lines of `tmp/logs/latest/browser.log`" beats hoping the model calls a tool correctly. Agents already know how to read files and use `grep`.
 - **Human + AI see the same bytes** — no reformatting, no schema negotiation. "Check line 428" just works.
 - **History for free** — full session history on disk. MCP sessions disappear after a crash. Agents reason better with context they can scroll back through.
+- **Easy to extend** — changing the log format or adding a new log file is a one-line change. Extending an MCP server means understanding its codebase, protocol layer, and tool registration.
 - **No permission friction** — reading a local file is passive context. MCP tools may need approval, rate limiting, or sandbox exceptions.
 - **Works across every stack** — every language can append to a file. Not every stack has a clean MCP SDK.
+
+That said, MCP has real strengths in other contexts. It provides structured, queryable interfaces that are useful for complex data sources (databases, APIs, search indexes) where flat files would be unwieldy. It also works in environments where the agent has no filesystem access, like cloud-hosted IDEs or remote sandboxes. For log capture specifically, files are the better fit — logs are inherently append-only text, and the entire Unix toolchain already exists to search, filter, and tail them.
 
 ## License
 
