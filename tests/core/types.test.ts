@@ -34,6 +34,7 @@ describe("resolve_options", () => {
             levels: ["log"],
             captureErrors: false,
             captureRejections: false,
+            excludes: [],
         }
         const result = resolve_options(custom)
         expect(result).toEqual(custom)

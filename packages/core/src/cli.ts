@@ -16,6 +16,7 @@ const HELP = `
     --log-dir <dir>       Log directory relative to cwd (default: tmp/logs)
     --max-sessions <n>    Max sessions to keep (default: 10)
     --no-combined         Don't write to combined.log
+    --exclude <pattern>   Exclude lines matching pattern (repeatable, /regex or substring)
     -h, --help            Show this help
 
   \x1b[1mExamples:\x1b[0m
@@ -40,6 +41,7 @@ function parse_cli_options(args: string[]): {
             "log-dir": { type: "string", default: "tmp/logs" },
             "max-sessions": { type: "string", default: "10" },
             "no-combined": { type: "boolean", default: false },
+            exclude: { type: "string", multiple: true },
             help: { type: "boolean", short: "h", default: false },
         },
         allowPositionals: true,
@@ -59,6 +61,7 @@ function parse_cli_options(args: string[]): {
                 10
             ),
             combined: !(values["no-combined"] as boolean),
+            excludes: (values.exclude as string[] | undefined) ?? [],
         },
         positionals,
         rest,

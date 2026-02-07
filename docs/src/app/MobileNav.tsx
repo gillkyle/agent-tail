@@ -9,6 +9,7 @@ const links = [
   { href: "/install", label: "Install" },
   { href: "/features", label: "Features" },
   { href: "/api-reference", label: "API Reference" },
+  { href: "/playground", label: "Playground" },
   { href: "/changelog", label: "Changelog" },
   { href: "/faq", label: "FAQ" },
 ];

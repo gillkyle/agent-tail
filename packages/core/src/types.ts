@@ -21,6 +21,8 @@ export interface BrowserLogsOptions {
     captureErrors?: boolean
     /** Capture unhandled promise rejections. Default: true */
     captureRejections?: boolean
+    /** Patterns to exclude from logs. Strings are substring matches, patterns starting with "/" are regex. Default: [] */
+    excludes?: string[]
 }
 
 export interface LogEntry {
@@ -45,6 +47,7 @@ export const DEFAULT_OPTIONS: ResolvedOptions = {
     levels: ["log", "warn", "error", "info", "debug"],
     captureErrors: true,
     captureRejections: true,
+    excludes: [],
 }
 
 export function resolve_options(user_options?: BrowserLogsOptions): ResolvedOptions {

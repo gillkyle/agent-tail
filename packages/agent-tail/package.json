@@ -1,0 +1,75 @@
+{
+    "name": "agent-tail",
+    "type": "module",
+    "version": "0.1.1",
+    "description": "Umbrella package for agent-tail — pipes browser console logs to files on disk during development.",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/gillkyle/agent-tail.git",
+        "directory": "packages/agent-tail"
+    },
+    "author": "Kyle Gill",
+    "keywords": [
+        "browser-logs",
+        "console",
+        "logging",
+        "vite",
+        "next",
+        "agent-tail"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.mjs",
+            "types": "./dist/index.d.mts"
+        },
+        "./vite": {
+            "import": "./dist/vite.mjs",
+            "types": "./dist/vite.d.mts"
+        },
+        "./next": {
+            "import": "./dist/next.mjs",
+            "types": "./dist/next.d.mts"
+        },
+        "./next/handler": {
+            "import": "./dist/handler.mjs",
+            "types": "./dist/handler.d.mts"
+        },
+        "./next/script": {
+            "import": "./dist/script.mjs",
+            "types": "./dist/script.d.mts"
+        }
+    },
+    "main": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "scripts": {
+        "build": "tsdown",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "agent-tail-core": "workspace:^",
+        "vite-plugin-agent-tail": "workspace:^",
+        "next-plugin-agent-tail": "workspace:^"
+    },
+    "peerDependencies": {
+        "vite": ">=5.0.0",
+        "next": ">=13.0.0",
+        "react": ">=18.0.0"
+    },
+    "peerDependenciesMeta": {
+        "vite": { "optional": true },
+        "next": { "optional": true },
+        "react": { "optional": true }
+    },
+    "devDependencies": {
+        "tsdown": "^0.18.1",
+        "vite": "^6.0.0",
+        "next": "^15.0.0",
+        "react": "^19.0.0",
+        "@types/react": "^19.0.0"
+    }
+}

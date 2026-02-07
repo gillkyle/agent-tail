@@ -1,4 +1,5 @@
 export { format_log_line } from "./formatter"
+export { should_exclude } from "./filter"
 export { generate_client_script } from "./client"
 export { LogManager } from "./log-manager"
 export { resolve_options, DEFAULT_OPTIONS } from "./types"

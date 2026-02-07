@@ -3,6 +3,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { LogManager } from "./log-manager"
 import { resolve_options } from "./types"
+import { should_exclude } from "./filter"
 
 const PREFIX = "\x1b[36m[agent-tail]\x1b[0m"
 
@@ -10,12 +11,14 @@ export interface CliOptions {
     log_dir: string
     max_sessions: number
     combined: boolean
+    excludes: string[]
 }
 
 export const DEFAULT_CLI_OPTIONS: CliOptions = {
     log_dir: "tmp/logs",
     max_sessions: 10,
     combined: true,
+    excludes: [],
 }
 
 export function create_manager(options: CliOptions): LogManager {
@@ -77,16 +80,21 @@ function write_to_logs(
     chunk: Buffer,
     name: string,
     log_stream: fs.WriteStream,
-    combined_stream: fs.WriteStream | null
+    combined_stream: fs.WriteStream | null,
+    excludes: string[] = []
 ): void {
-    log_stream.write(chunk)
-    if (combined_stream) {
-        const text = chunk.toString()
-        const lines = text.split("\n")
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].length > 0) {
+    const text = chunk.toString()
+    const lines = text.split("\n")
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].length > 0) {
+            if (excludes.length && should_exclude(lines[i], excludes)) continue
+            log_stream.write(lines[i] + "\n")
+            if (combined_stream) {
                 combined_stream.write(`[${name}] ${lines[i]}\n`)
-            } else if (i < lines.length - 1) {
+            }
+        } else if (i < lines.length - 1) {
+            log_stream.write("\n")
+            if (combined_stream) {
                 combined_stream.write("\n")
             }
         }
@@ -130,11 +138,11 @@ export function cmd_wrap(
 
     child.stdout?.on("data", (chunk: Buffer) => {
         process.stdout.write(chunk)
-        write_to_logs(chunk, name, log_stream, combined_stream)
+        write_to_logs(chunk, name, log_stream, combined_stream, options.excludes)
     })
     child.stderr?.on("data", (chunk: Buffer) => {
         process.stderr.write(chunk)
-        write_to_logs(chunk, name, log_stream, combined_stream)
+        write_to_logs(chunk, name, log_stream, combined_stream, options.excludes)
     })
 
     return new Promise((resolve, reject) => {
@@ -217,14 +225,15 @@ export function cmd_run(
 
         function handle(target: NodeJS.WriteStream, chunk: Buffer) {
             const text = chunk.toString()
-            log_stream.write(chunk)
-
             const lines = text.split("\n")
             for (let j = 0; j < lines.length; j++) {
                 if (lines[j].length > 0) {
+                    if (options.excludes.length && should_exclude(lines[j], options.excludes)) continue
+                    log_stream.write(lines[j] + "\n")
                     target.write(`${tag} ${lines[j]}\n`)
                     combined_stream?.write(`[${svc.name}] ${lines[j]}\n`)
                 } else if (j < lines.length - 1) {
+                    log_stream.write("\n")
                     target.write("\n")
                     combined_stream?.write("\n")
                 }

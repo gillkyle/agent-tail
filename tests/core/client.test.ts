@@ -59,4 +59,25 @@ describe("generate_client_script", () => {
         expect(script).toContain("CAPTURE_ERRORS = true")
         expect(script).toContain("CAPTURE_REJECTIONS = true")
     })
+
+    it("injects empty excludes by default", () => {
+        const script = generate_client_script(DEFAULT_OPTIONS)
+        expect(script).toContain("EXCLUDES = []")
+    })
+
+    it("injects custom excludes", () => {
+        const options = resolve_options({ excludes: ["debug", "/^HMR/"] })
+        const script = generate_client_script(options)
+        expect(script).toContain('EXCLUDES = ["debug","/^HMR/"]')
+    })
+
+    it("contains inline should_exclude function", () => {
+        const script = generate_client_script(DEFAULT_OPTIONS)
+        expect(script).toContain("function should_exclude")
+    })
+
+    it("calls should_exclude before pushing to batch", () => {
+        const script = generate_client_script(DEFAULT_OPTIONS)
+        expect(script).toContain("should_exclude(entry.args.join")
+    })
 })

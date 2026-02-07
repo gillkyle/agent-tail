@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.scss";
 import { SideNav } from "./SideNav";
 import { MobileNav } from "./MobileNav";
+import { ToolbarWrapper } from "../components/toolbar/ToolbarWrapper";
+import { RouteLogger } from "../components/RouteLogger";
 
 export const metadata: Metadata = {
   title: "agent-tail",
@@ -34,6 +36,8 @@ export default function RootLayout({
         <MobileNav />
         <SideNav />
         <main className="main-content">{children}</main>
+        <RouteLogger />
+        <ToolbarWrapper />
       </body>
     </html>
   );

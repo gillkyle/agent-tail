@@ -145,6 +145,45 @@ describe("browser_logs vite plugin", () => {
         expect(res.writeHead).toHaveBeenCalledWith(405)
     })
 
+    it("filters excluded entries server-side", () => {
+        const plugin = browser_logs({ excludes: ["noisy"] })
+        let handler: Function = () => {}
+        const mock_server = {
+            config: { root: temp_dir },
+            middlewares: {
+                use: (_p: string, h: Function) => {
+                    handler = h
+                },
+            },
+        }
+
+        vi.spyOn(console, "log").mockImplementation(() => {})
+        ;(plugin as any).configureServer(mock_server)
+
+        const log_entries = [
+            { level: "log", args: ["keep this"], timestamp: "10:30:00.123" },
+            { level: "log", args: ["noisy message"], timestamp: "10:30:00.456" },
+            { level: "error", args: ["also keep"], timestamp: "10:30:00.789" },
+        ]
+
+        const req = new EventEmitter() as any
+        req.method = "POST"
+        const res = { writeHead: vi.fn(), end: vi.fn() }
+
+        handler(req, res)
+        req.emit("data", Buffer.from(JSON.stringify(log_entries)))
+        req.emit("end")
+
+        const log_dir = path.join(temp_dir, "tmp/logs")
+        const latest = path.join(log_dir, "latest")
+        const log_file = path.join(fs.realpathSync(latest), "browser.log")
+        const content = fs.readFileSync(log_file, "utf-8")
+
+        expect(content).toContain("keep this")
+        expect(content).toContain("also keep")
+        expect(content).not.toContain("noisy message")
+    })
+
     it("transforms index HTML with script injection", () => {
         const plugin = browser_logs()
         const result = (plugin as any).transformIndexHtml()

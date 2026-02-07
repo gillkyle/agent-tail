@@ -23,6 +23,7 @@ const DEFAULT_OPTS: CliOptions = {
     log_dir: "tmp/logs",
     max_sessions: 10,
     combined: true,
+    excludes: [],
 }
 
 describe("CLI commands", () => {
@@ -205,6 +206,53 @@ describe("CLI commands", () => {
             expect(() => cmd_run(temp_dir, [], DEFAULT_OPTS)).toThrow(
                 "requires at least one service"
             )
+        })
+    })
+
+    describe("cmd_wrap with excludes", () => {
+        it("filters excluded lines from log files", async () => {
+            cmd_init(temp_dir, DEFAULT_OPTS)
+            vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+
+            const opts = { ...DEFAULT_OPTS, excludes: ["secret"] }
+            const code = await cmd_wrap(
+                temp_dir,
+                "filtered",
+                ["printf 'public line\\nsecret data\\nanother line\\n'"],
+                opts
+            )
+            expect(code).toBe(0)
+
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
+            const log_file = path.join(session_dir, "filtered.log")
+            const content = fs.readFileSync(log_file, "utf-8")
+
+            expect(content).toContain("public line")
+            expect(content).toContain("another line")
+            expect(content).not.toContain("secret data")
+        })
+    })
+
+    describe("cmd_run with excludes", () => {
+        it("filters excluded lines from log files", async () => {
+            vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+
+            const opts = { ...DEFAULT_OPTS, excludes: ["noisy"] }
+            await cmd_run(
+                temp_dir,
+                ["svc: printf 'keep this\\nnoisy output\\nalso keep\\n'"],
+                opts
+            )
+
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
+            const log_file = path.join(session_dir, "svc.log")
+            const content = fs.readFileSync(log_file, "utf-8")
+
+            expect(content).toContain("keep this")
+            expect(content).toContain("also keep")
+            expect(content).not.toContain("noisy output")
         })
     })
 

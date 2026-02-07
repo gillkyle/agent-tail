@@ -8,9 +8,27 @@ export function generate_client_script(options: ResolvedOptions): string {
     var MAX_SERIALIZE = ${options.maxSerializeLength};
     var ENDPOINT = ${JSON.stringify(options.endpoint)};
     var LEVELS = ${JSON.stringify(options.levels)};
+    var EXCLUDES = ${JSON.stringify(options.excludes)};
     var CAPTURE_ERRORS = ${options.captureErrors};
     var CAPTURE_REJECTIONS = ${options.captureRejections};
     var timer = null;
+
+    function should_exclude(msg) {
+        for (var i = 0; i < EXCLUDES.length; i++) {
+            var p = EXCLUDES[i];
+            if (p.charAt(0) === "/") {
+                try {
+                    var li = p.lastIndexOf("/");
+                    var src = li > 0 ? p.slice(1, li) : p.slice(1);
+                    var fl = li > 0 ? p.slice(li + 1) : "";
+                    if (new RegExp(src, fl).test(msg)) return true;
+                } catch(e) {}
+            } else {
+                if (msg.indexOf(p) !== -1) return true;
+            }
+        }
+        return false;
+    }
 
     function serialize(arg) {
         if (arg === null) return "null";
@@ -40,6 +58,7 @@ export function generate_client_script(options: ResolvedOptions): string {
             if (extra.url) entry.url = extra.url;
             if (extra.stack) entry.stack = extra.stack;
         }
+        if (EXCLUDES.length && should_exclude(entry.args.join(" "))) return;
         BATCH.push(entry);
         if (BATCH.length >= MAX_BATCH) flush();
         else if (!timer) timer = setTimeout(flush, FLUSH_INTERVAL);

@@ -25,6 +25,7 @@ describe("Next.js handler", () => {
 
     afterEach(() => {
         delete process.env.__BROWSER_LOGS_PATH
+        delete process.env.__BROWSER_LOGS_EXCLUDES
         cleanup(temp_dir)
         vi.restoreAllMocks()
     })
@@ -58,6 +59,26 @@ describe("Next.js handler", () => {
             const response = await POST(request)
 
             expect(response.status).toBe(500)
+        })
+
+        it("filters excluded entries", async () => {
+            process.env.__BROWSER_LOGS_EXCLUDES = JSON.stringify(["noisy"])
+            const entries = [
+                { level: "log", args: ["keep"], timestamp: "10:00:00.000" },
+                { level: "log", args: ["noisy stuff"], timestamp: "10:00:00.001" },
+            ]
+            const request = new Request("http://localhost/__browser-logs", {
+                method: "POST",
+                body: JSON.stringify(entries),
+                headers: { "Content-Type": "application/json" },
+            })
+
+            const response = await POST(request)
+
+            expect(response.status).toBe(204)
+            const content = fs.readFileSync(log_file, "utf-8")
+            expect(content).toContain("keep")
+            expect(content).not.toContain("noisy stuff")
         })
 
         it("returns 204 on malformed JSON", async () => {
@@ -96,6 +117,23 @@ describe("Next.js handler", () => {
             pages_handler(req, res)
 
             expect(res.status).toHaveBeenCalledWith(405)
+        })
+
+        it("filters excluded entries", () => {
+            process.env.__BROWSER_LOGS_EXCLUDES = JSON.stringify(["/^debug/"])
+            const entries = [
+                { level: "log", args: ["keep this"], timestamp: "10:00:00.000" },
+                { level: "debug", args: ["debug info"], timestamp: "10:00:00.001" },
+            ]
+            const req = { method: "POST", body: entries }
+            const end_fn = vi.fn()
+            const res = { status: vi.fn(() => ({ end: end_fn })) }
+
+            pages_handler(req, res)
+
+            const content = fs.readFileSync(log_file, "utf-8")
+            expect(content).toContain("keep this")
+            expect(content).not.toContain("debug info")
         })
 
         it("handles string body", () => {

@@ -24,6 +24,7 @@ export function with_browser_logs(
             ...next_config.env,
             __BROWSER_LOGS_ENDPOINT: options.endpoint,
             __BROWSER_LOGS_PATH: log_path,
+            __BROWSER_LOGS_EXCLUDES: JSON.stringify(options.excludes),
         },
         webpack(config: any, context: any) {
             if (typeof next_config.webpack === "function") {

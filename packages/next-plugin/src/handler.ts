@@ -1,6 +1,6 @@
 import fs from "node:fs"
 import type { LogEntry } from "agent-tail-core"
-import { format_log_line } from "agent-tail-core"
+import { format_log_line, should_exclude } from "agent-tail-core"
 
 /**
  * Next.js App Router API route handler.
@@ -15,7 +15,11 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     try {
-        const entries: LogEntry[] = await request.json()
+        const excludes: string[] = JSON.parse(process.env.__BROWSER_LOGS_EXCLUDES || "[]")
+        let entries: LogEntry[] = await request.json()
+        if (excludes.length) {
+            entries = entries.filter(e => !should_exclude(e.args.join(" "), excludes))
+        }
         const lines = entries.map(format_log_line).join("")
         fs.appendFileSync(log_path, lines)
         return new Response(null, { status: 204 })
@@ -46,8 +50,12 @@ export function pages_handler(
     }
 
     try {
-        const entries: LogEntry[] =
+        const excludes: string[] = JSON.parse(process.env.__BROWSER_LOGS_EXCLUDES || "[]")
+        let entries: LogEntry[] =
             typeof req.body === "string" ? JSON.parse(req.body) : req.body
+        if (excludes.length) {
+            entries = entries.filter(e => !should_exclude(e.args.join(" "), excludes))
+        }
         const lines = entries.map(format_log_line).join("")
         fs.appendFileSync(log_path, lines)
     } catch {

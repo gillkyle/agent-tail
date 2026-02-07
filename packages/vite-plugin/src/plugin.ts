@@ -6,6 +6,7 @@ import {
     format_log_line,
     LogManager,
     generate_client_script,
+    should_exclude,
 } from "agent-tail-core"
 
 export function browser_logs(user_options?: BrowserLogsOptions): Plugin {
@@ -34,7 +35,10 @@ export function browser_logs(user_options?: BrowserLogsOptions): Plugin {
                 })
                 req.on("end", () => {
                     try {
-                        const entries: LogEntry[] = JSON.parse(body)
+                        let entries: LogEntry[] = JSON.parse(body)
+                        if (options.excludes.length) {
+                            entries = entries.filter(e => !should_exclude(e.args.join(" "), options.excludes))
+                        }
                         const lines = entries.map(format_log_line).join("")
                         fs.appendFileSync(log_path, lines)
                     } catch {

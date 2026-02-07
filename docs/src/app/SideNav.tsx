@@ -61,6 +61,7 @@ export function SideNav() {
 				{ id: "directory-structure", text: "Directory Structure" },
 			],
 		},
+		{ href: "/playground", label: "Playground" },
 		{ section: "Resources" },
 		{ href: "/changelog", label: "Changelog" },
 		{ href: "/faq", label: "FAQ" },
