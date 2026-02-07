@@ -5,7 +5,10 @@
       "Bash(pnpm run test:*)",
       "Bash(pnpm run build:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(node --version:*)",
+      "Bash(node --experimental-strip-types --no-warnings:*)",
+      "Bash(git push:*)"
     ]
   }
 }

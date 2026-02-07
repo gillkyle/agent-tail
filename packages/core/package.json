@@ -11,6 +11,9 @@
     },
     "main": "./dist/index.mjs",
     "types": "./dist/index.d.mts",
+    "bin": {
+        "agent-tail": "./dist/cli.mjs"
+    },
     "files": ["dist"],
     "scripts": {
         "build": "tsdown",

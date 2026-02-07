@@ -74,6 +74,27 @@ export class LogManager {
         }
     }
 
+    /**
+     * Resolve the current session directory. If a `latest` symlink exists and
+     * points to a valid directory, return it. Otherwise create a new session.
+     */
+    resolve_session(project_root: string): string {
+        const log_dir = path.resolve(project_root, this.options.logDir)
+        const latest_link = path.join(log_dir, "latest")
+
+        try {
+            const real = fs.realpathSync(latest_link)
+            if (fs.statSync(real).isDirectory()) {
+                return real
+            }
+        } catch {
+            // no valid session yet
+        }
+
+        const log_path = this.initialize(project_root)
+        return path.dirname(log_path)
+    }
+
     check_gitignore(project_root: string): void {
         const gitignore_path = path.join(project_root, ".gitignore")
         try {
