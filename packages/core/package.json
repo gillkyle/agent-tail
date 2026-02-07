@@ -21,7 +21,7 @@
     "bin": {
         "agent-tail": "./dist/cli.mjs"
     },
-    "files": ["dist"],
+    "files": ["dist", "README.md"],
     "scripts": {
         "build": "tsdown",
         "typecheck": "tsc --noEmit"

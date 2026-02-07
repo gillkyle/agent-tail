@@ -27,7 +27,7 @@
     },
     "main": "./dist/index.mjs",
     "types": "./dist/index.d.mts",
-    "files": ["dist"],
+    "files": ["dist", "README.md"],
     "scripts": {
         "build": "tsdown",
         "typecheck": "tsc --noEmit"
