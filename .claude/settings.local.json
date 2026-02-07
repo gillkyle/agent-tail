@@ -1,19 +1,25 @@
 {
-	"permissions": {
-		"allow": [
-			"Bash(pnpm install:*)",
-			"Bash(pnpm run test:*)",
-			"Bash(pnpm run build:*)",
-			"Bash(git add:*)",
-			"Bash(git commit:*)",
-			"Bash(node --version:*)",
-			"Bash(node --experimental-strip-types --no-warnings:*)",
-			"Bash(git push:*)",
-			"Bash(gh api:*)",
-			"Bash(pnpm -r run build:*)",
-			"Bash(npm install:*)",
-			"Bash(npm run build:*)",
-			"Bash(pnpm release:*)"
-		]
-	}
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install:*)",
+      "Bash(pnpm run test:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(node --version:*)",
+      "Bash(node --experimental-strip-types --no-warnings:*)",
+      "Bash(git push:*)",
+      "Bash(gh api:*)",
+      "Bash(pnpm -r run build:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(pnpm release:*)",
+      "Bash(ls:*)",
+      "Bash(pnpm run typecheck:*)",
+      "Bash(pnpm --filter agent-tail-docs add:*)",
+      "Bash(pnpm add:*)",
+      "Bash(playwriter:*)",
+      "Bash(pnpm -w run test:*)"
+    ]
+  }
 }
