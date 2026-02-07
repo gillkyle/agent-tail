@@ -1,19 +1,55 @@
-# agent-tail
+# &>> agent-tail
 
-Pipe browser console logs to files on disk during development. Tail them in your terminal alongside your backend server and worker logs.
+agent-tail pipes server output and browser console logs to log files your AI coding agents can read and grep.
+
+## Try it
+
+```bash
+npx agent-tail-core run 'server: echo "Hello world!"' && cat tmp/logs/latest/server.log
+```
+
+That's the full cycle: run a command, output is captured to a log file, read the file.
+
+## Two ways to use agent-tail
+
+### CLI — capture server output
+
+`agent-tail run` wraps any command (or commands!) and pipes their stdout/stderr to log files. Works with any dev server, any language, zero config.
+
+```bash
+npx agent-tail-core run 'fe: npm run dev' 'api: uv run server'
+```
+
+Each service gets its own log file (`api.log`, `worker.log`) plus a `combined.log` with all output interleaved. See [CLI: `agent-tail`](#cli-agent-tail) for full usage.
+
+### Framework plugins — capture browser console output
+
+The Vite and Next.js plugins inject a small script into your HTML that intercepts `console.log`, `console.warn`, `console.error`, unhandled errors, and unhandled promise rejections. Captured logs are sent to the dev server and written to `browser.log`.
+
+See [Quick Start](#quick-start) below for setup.
+
+### Use both together
+
+The CLI and framework plugins write to the same session directory. Run your Vite dev server through `agent-tail run` and you get server output *and* browser console logs in one place:
+
+```bash
+agent-tail run 'fe: npm run dev' 'api: uv run server'
+# tmp/logs/latest/fe.log        — Vite server output
+# tmp/logs/latest/browser.log   — browser console (via plugin)
+# tmp/logs/latest/api.log       — API server output
+# tmp/logs/latest/combined.log  — everything interleaved
+```
 
 ## Table of Contents
 
+- [Two ways to use agent-tail](#two-ways-to-use-agent-tail) — [CLI](#cli--capture-server-output) | [Framework plugins](#framework-plugins--capture-browser-console-output)
 - [Packages](#packages)
 - [Quick Start](#quick-start) — [Vite](#vite) | [Next.js](#nextjs)
 - [How It Works](#how-it-works)
-- [Configuration](#configuration)
-- [Log Format](#log-format)
-- [Directory Structure](#directory-structure)
-- [CLI: `agent-tail`](#cli-agent-tail) — [run](#agent-tail-run) | [wrap](#agent-tail-wrap) | [init](#agent-tail-init)
+- [Configuration](#configuration) — [.gitignore](#gitignore) | [Log Format](#log-format) | [Captured Events](#captured-events)
+- [CLI: `agent-tail`](#cli-agent-tail) — [run](#agent-tail-run) | [init + wrap](#agent-tail-init--agent-tail-wrap)
 - [Multi-Server Log Aggregation](#multi-server-log-aggregation)
 - [Searching and Tailing Logs](#searching-and-tailing-logs)
-- [Captured Events](#captured-events)
 - [Agent Setup](#agent-setup)
 - [Why Files, Not MCP](#why-files-not-mcp)
 
@@ -21,9 +57,9 @@ Pipe browser console logs to files on disk during development. Tail them in your
 
 | Package | Description |
 |---------|-------------|
-| [`vite-plugin-agent-tail`](./packages/vite-plugin) | Vite plugin |
-| [`next-plugin-agent-tail`](./packages/next-plugin) | Next.js plugin |
-| [`agent-tail-core`](./packages/core) | Shared core (types, formatting, log management) |
+| [`agent-tail-core`](./packages/core) | CLI and shared core (types, formatting, log management) |
+| [`vite-plugin-agent-tail`](./packages/vite-plugin) | Vite plugin — browser console capture |
+| [`next-plugin-agent-tail`](./packages/next-plugin) | Next.js plugin — browser console capture |
 
 ## Quick Start
 
@@ -87,12 +123,38 @@ export { POST } from "next-plugin-agent-tail/handler"
 
 ## How It Works
 
-1. On dev server start, a timestamped session directory is created (e.g. `tmp/logs/2024-01-15T10-30-00-123Z/`)
+### CLI
+
+1. `agent-tail run` spawns your services and creates a timestamped session directory (e.g. `tmp/logs/2024-01-15T10-30-00-123Z/`)
 2. A `latest` symlink points to the newest session
-3. A small script is injected into your HTML that intercepts console methods
-4. Captured logs are batched and sent to the dev server via `sendBeacon`
-5. The server writes formatted log lines to `browser.log` in the session directory
-6. Old sessions beyond the limit are automatically pruned (default: keep 10)
+3. Each service's stdout/stderr is written to a named log file (`api.log`, `worker.log`, etc.) and a `combined.log`
+4. Old sessions beyond the limit are automatically pruned (default: keep 10)
+
+### Framework plugins (Vite / Next.js)
+
+1. On dev server start, a timestamped session directory is created (reused if one already exists from the CLI)
+2. A small script is injected into your HTML that intercepts console methods
+3. Captured logs are batched and sent to the dev server via `sendBeacon`
+4. The server writes formatted log lines to `browser.log` in the session directory
+
+<details>
+<summary><strong>Where are files written?</strong></summary>
+
+```
+your-project/
+├── tmp/
+│   └── logs/
+│       ├── 2024-01-15T10-30-00-123Z/
+│       │   └── browser.log
+│       ├── 2024-01-15T11-45-00-456Z/
+│       │   └── browser.log
+│       └── latest -> 2024-01-15T11-45-00-456Z/
+└── vite.config.ts
+```
+
+Each dev server start creates a new timestamped directory. The `latest` symlink always points to the most recent session, so `tmp/logs/latest/browser.log` is always the current log file. Old sessions are pruned automatically.
+
+</details>
 
 ## Configuration
 
@@ -173,7 +235,7 @@ export { POST } from "next-plugin-agent-tail/handler"
 
 </details>
 
-## .gitignore Setup
+### .gitignore
 
 Add your log directory to `.gitignore` to keep logs out of version control:
 
@@ -184,7 +246,7 @@ tmp/
 
 The plugin warns on startup if the log directory isn't gitignored. Disable with `warnOnMissingGitignore: false`.
 
-## Log Format
+### Log Format
 
 ```
 [HH:MM:SS.mmm] [LEVEL  ] message (url)
@@ -203,23 +265,18 @@ Example:
         at handleClick (http://localhost:5173/src/app.ts:15:5)
 ```
 
-## Directory Structure
+### Captured Events
 
-```
-your-project/
-├── tmp/
-│   └── logs/
-│       ├── 2024-01-15T10-30-00-123Z/
-│       │   └── browser.log
-│       ├── 2024-01-15T11-45-00-456Z/
-│       │   └── browser.log
-│       └── latest -> 2024-01-15T11-45-00-456Z/
-└── vite.config.ts
-```
+Beyond console methods, the plugin captures:
+
+- **Unhandled errors** (`window.onerror`) — logged as `UNCAUGHT_ERROR`
+- **Unhandled promise rejections** — logged as `UNHANDLED_REJECTION`
+
+Disable with `captureErrors: false` and `captureRejections: false`.
 
 ## CLI: `agent-tail`
 
-The `agent-tail` CLI wraps any dev server command and pipes its output into the unified log session. Install it from the core package:
+The `agent-tail` CLI wraps any dev server command (or commands!) and pipes their output into the unified log session. Install it from the core package:
 
 ```bash
 npm install -D agent-tail-core
@@ -227,7 +284,7 @@ npm install -D agent-tail-core
 
 ### `agent-tail run`
 
-The easiest way to use agent-tail is to add a script to your `package.json`:
+This is the primary entry point. It creates a fresh session, spawns all your services, and handles everything:
 
 ```json
 {
@@ -246,37 +303,40 @@ This:
 - Writes individual log files (`fe.log`, `api.log`, `worker.log`)
 - Writes a `combined.log` with all output interleaved
 
-If you prefer a shell script, you can also use multi-line syntax:
+Works with a single service too — no need to reach for `wrap`:
 
 ```bash
-#!/bin/bash
-npx agent-tail run \
-  "fe: npm run dev:frontend" \
-  "api: uv run fastapi-server" \
-  "worker: uv run celery-worker"
+npx agent-tail run 'api: uv run server'
 ```
 
-### `agent-tail wrap`
+### `agent-tail init` + `agent-tail wrap`
 
-Wraps a single command, piping its stdout/stderr to a named log file in the current session:
+If you need more control over when the session is created or want to start services independently (e.g. in separate terminal tabs, from different scripts, or at different times), you can split session creation and command wrapping into two steps.
 
-```bash
-npx agent-tail wrap api -- uv run fastapi-server
-npx agent-tail wrap worker -- python -m celery worker -A myapp
-```
-
-This creates `api.log` and `worker.log` in the latest session directory. Output still appears in your terminal. A `combined.log` is also written with `[name]` prefixes.
-
-If no session exists yet, `wrap` creates one automatically. If a session already exists (e.g. started by the Vite plugin), it reuses it.
-
-### `agent-tail init`
-
-Creates a new log session directory and prints the path:
+`init` creates a new session directory and prints the path. `wrap` runs a single command and pipes its output into the existing session. Unlike `run`, `wrap` does not create a new session — it reuses whatever session the `latest` symlink points to.
 
 ```bash
+# Terminal 1: Create the session
 npx agent-tail init
-# Output: /path/to/your-project/tmp/logs/2024-01-15T10-30-00-123Z
+
+# Terminal 2: Wrap the API server (joins the session)
+npx agent-tail wrap api -- uv run fastapi-server
+
+# Terminal 3: Wrap the worker (joins the same session)
+npx agent-tail wrap worker -- uv run celery-worker
 ```
+
+This is also useful when a framework plugin (Vite or Next.js) already created the session — `wrap` detects it and writes to the same directory:
+
+```bash
+# Terminal 1: Vite creates the session on startup
+npm run dev
+
+# Terminal 2: Wrap additional services into the same session
+npx agent-tail wrap api -- uv run fastapi-server
+```
+
+If no session exists when `wrap` is called, it creates one automatically.
 
 ### CLI Options
 
@@ -304,25 +364,23 @@ Run everything from one command. Add it to `package.json` and forget about it:
 
 All output goes to the same session automatically. The Vite plugin still captures browser console logs via its injected script.
 
-### Wrap services independently
+### Use `init` + `wrap` for independent services
 
-If you prefer running each service in its own terminal:
+If you prefer running each service in its own terminal (see [`init` + `wrap`](#agent-tail-init--agent-tail-wrap) for details):
 
 ```bash
 # Terminal 1: Start the frontend (creates the session)
 npm run dev
 
-# Terminal 2: Wrap the API server (reuses the session)
-npx agent-tail wrap api -- uv run fastapi-server
+# Terminal 2: Wrap the API server (joins the session)
+npx agent-tail wrap api -- npm run dev:api
 
-# Terminal 3: Wrap the worker (reuses the session)
-npx agent-tail wrap worker -- python -m celery worker
+# Terminal 3: Wrap the worker (joins the same session)
+npx agent-tail wrap worker -- uv run celery-worker
 
 # Terminal 4: Tail everything
 tail -f tmp/logs/latest/*.log
 ```
-
-The `wrap` command detects the existing session created by the Vite/Next plugin and writes to the same directory.
 
 ### Direct file writes (no CLI needed)
 
@@ -449,15 +507,6 @@ Use `rg` (ripgrep) for faster searches in larger sessions:
 rg "ERROR|WARN" tmp/logs/latest/
 rg "fetch.*failed" tmp/logs/latest/browser.log -C 3
 ```
-
-## Captured Events
-
-Beyond console methods, the plugin captures:
-
-- **Unhandled errors** (`window.onerror`) — logged as `UNCAUGHT_ERROR`
-- **Unhandled promise rejections** — logged as `UNHANDLED_REJECTION`
-
-Disable with `captureErrors: false` and `captureRejections: false`.
 
 ## Agent Setup
 
