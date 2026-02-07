@@ -2,6 +2,8 @@
 
 agent-tail pipes server output and browser console logs to log files your AI coding agents can read and grep.
 
+<video src="assets/agent-tail-demo.mp4" autoplay loop muted playsinline></video>
+
 ## Try it
 
 ```bash

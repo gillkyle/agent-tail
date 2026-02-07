@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { CodeBlock } from "./components/CodeBlock";
+import { HeroDemo } from "./components/HeroDemo";
 import { Footer } from "./Footer";
 
 const IconCopyAnimated = ({
@@ -66,7 +67,7 @@ const IconCopyAnimated = ({
 
 function InstallSnippet() {
 	const [copied, setCopied] = useState(false);
-	const command = "npm install -D vite-plugin-agent-tail";
+	const command = "npm install agent-tail-core";
 
 	const handleCopy = async () => {
 		await navigator.clipboard.writeText(command);
@@ -89,9 +90,8 @@ function InstallSnippet() {
 export default function OverviewPage() {
 	return (
 		<>
-			<article className="article">
+			<article className="article" style={{ paddingBottom: 0, gap: "0.5rem" }}>
 				<header style={{ position: "relative" }}>
-					<InstallSnippet />
 					<h1
 						style={{
 							fontSize: "2rem",
@@ -101,12 +101,17 @@ export default function OverviewPage() {
 					>
 						Development logs made agent accessible.
 					</h1>
+					<InstallSnippet />
 					<p className="tagline">
-						agent-tail pipes server output and browser console logs to log files
-						your AI coding agents can read and <code>grep</code>.
+						<code>agent-tail</code> pipes server output and browser console logs
+						to log files your AI coding agents can read and <code>grep</code>.
 					</p>
 				</header>
+			</article>
 
+			<HeroDemo />
+
+			<article className="article" style={{ paddingTop: "1rem" }}>
 				<section>
 					<h2>Try it</h2>
 					<CodeBlock
