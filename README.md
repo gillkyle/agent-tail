@@ -334,17 +334,62 @@ f, _ := os.OpenFile(filepath.Join(logDir, "server.log"),
 log.SetOutput(f)
 ```
 
-### Tailing Logs
+### Searching and Tailing Logs
+
+All commands below should be run from your **project root** (where `tmp/logs/` lives).
 
 ```bash
-# Tail all logs from the current session
+# Follow all logs in real time
 tail -f tmp/logs/latest/*.log
 
-# Tail a specific service
-tail -f tmp/logs/latest/api.log
+# Follow a specific service
+tail -f tmp/logs/latest/browser.log
 
-# Use multitail for colored split view
-multitail tmp/logs/latest/browser.log tmp/logs/latest/api.log tmp/logs/latest/worker.log
+# Colored split view (install: brew install multitail)
+multitail tmp/logs/latest/browser.log tmp/logs/latest/api.log
+```
+
+Search across all logs in the current session:
+
+```bash
+# Find all errors across every service
+grep -r "ERROR" tmp/logs/latest/
+
+# Case-insensitive search
+grep -ri "failed\|timeout\|exception" tmp/logs/latest/
+
+# Show 5 lines of context around each match
+grep -r -C 5 "ERROR" tmp/logs/latest/
+
+# Search a specific service
+grep "TypeError" tmp/logs/latest/browser.log
+```
+
+Filter and extract with `awk`:
+
+```bash
+# Only ERROR and WARN lines from browser logs
+awk '/\[ERROR|\[WARN/' tmp/logs/latest/browser.log
+
+# Everything after a specific timestamp
+awk '/\[10:30:00/,0' tmp/logs/latest/browser.log
+```
+
+Count and summarize:
+
+```bash
+# Count errors per service
+grep -rc "ERROR" tmp/logs/latest/
+
+# Most frequent error messages
+grep "ERROR" tmp/logs/latest/browser.log | sort | uniq -c | sort -rn | head
+```
+
+Use `rg` (ripgrep) for faster searches in larger sessions:
+
+```bash
+rg "ERROR|WARN" tmp/logs/latest/
+rg "fetch.*failed" tmp/logs/latest/browser.log -C 3
 ```
 
 ## Captured Events
@@ -355,6 +400,27 @@ Beyond console methods, the plugin captures:
 - **Unhandled promise rejections** — logged as `UNHANDLED_REJECTION`
 
 Disable with `captureErrors: false` and `captureRejections: false`.
+
+## Agent Setup
+
+To get the most out of agent-tail, tell your AI agent where the logs are. Add a snippet like this to your project's agent instructions file (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `SKILLS.md`, or equivalent):
+
+```markdown
+## Dev Logs
+
+All dev server output is piped to `tmp/logs/`. The latest session is
+symlinked at `tmp/logs/latest/`. Browser console output (console.log,
+console.warn, console.error, unhandled errors, unhandled promise rejections)
+is automatically captured to `tmp/logs/latest/browser.log` via a Vite plugin
+during development.
+
+When debugging, always check recent logs before guessing:
+
+    grep -ri "error\|warn" tmp/logs/latest/
+    tail -50 tmp/logs/latest/browser.log
+```
+
+This gives the agent passive context about where runtime truth lives, so it reads logs instead of speculating.
 
 ## Why Files, Not MCP
 
