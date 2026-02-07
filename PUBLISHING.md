@@ -13,12 +13,14 @@ npm whoami  # confirm you're logged in
 ```bash
 pnpm -r run build
 
-npm publish --access public --otp=<CODE> ./packages/core
-npm publish --access public --otp=<CODE> ./packages/vite-plugin
-npm publish --access public --otp=<CODE> ./packages/next-plugin
+pnpm publish --access public --otp=<CODE> ./packages/core
+pnpm publish --access public --otp=<CODE> ./packages/vite-plugin
+pnpm publish --access public --otp=<CODE> ./packages/next-plugin
 ```
 
-Core must be published first since the other two depend on it. pnpm automatically replaces `workspace:*` with the real version (e.g. `^0.0.1`) at publish time.
+Core must be published first since the other two depend on it.
+
+> **Important:** Always use `pnpm publish` (not `npm publish`). pnpm automatically replaces `workspace:^` with the real version range (e.g. `^0.1.0`) at publish time. Using `npm publish` will leave the raw `workspace:` protocol in the published package, breaking installs for consumers.
 
 ## Releasing a New Version
 
@@ -38,9 +40,9 @@ pnpm version:major   # 0.x.x → 1.0.0
 git add -A && git commit -m "v0.0.2"
 git tag v0.0.2
 pnpm -r run build
-npm publish --access public --otp=<CODE> ./packages/core
-npm publish --access public --otp=<CODE> ./packages/vite-plugin
-npm publish --access public --otp=<CODE> ./packages/next-plugin
+pnpm publish --access public --otp=<CODE> ./packages/core
+pnpm publish --access public --otp=<CODE> ./packages/vite-plugin
+pnpm publish --access public --otp=<CODE> ./packages/next-plugin
 git push && git push --tags
 ```
 
@@ -58,4 +60,4 @@ git push && git push --tags
 - All three packages are versioned in lockstep (same version number).
 - The `release` script uses `--no-git-checks` because the build step generates dist files that make the working tree dirty.
 - npm 2FA is enabled, so every publish requires an `--otp` code from your authenticator.
-- `workspace:*` dependencies are resolved to real version ranges automatically by pnpm at publish time.
+- `workspace:^` dependencies are resolved to real version ranges automatically by pnpm at publish time. **Never use `npm publish`** — it does not resolve the `workspace:` protocol.
