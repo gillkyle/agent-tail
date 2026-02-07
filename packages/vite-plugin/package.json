@@ -1,7 +1,7 @@
 {
     "name": "vite-plugin-agent-tail",
     "type": "module",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Vite plugin for agent-tail — pipes browser console logs to files on disk during development.",
     "license": "MIT",
     "repository": {
@@ -10,7 +10,13 @@
         "directory": "packages/vite-plugin"
     },
     "author": "Kyle Gill",
-    "keywords": ["vite", "vite-plugin", "browser-logs", "console", "logging"],
+    "keywords": [
+        "vite",
+        "vite-plugin",
+        "browser-logs",
+        "console",
+        "logging"
+    ],
     "exports": {
         ".": {
             "import": "./dist/index.mjs",
@@ -19,7 +25,10 @@
     },
     "main": "./dist/index.mjs",
     "types": "./dist/index.d.mts",
-    "files": ["dist", "README.md"],
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "scripts": {
         "build": "tsdown",
         "typecheck": "tsc --noEmit"

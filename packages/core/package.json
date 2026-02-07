@@ -1,7 +1,7 @@
 {
     "name": "agent-tail-core",
     "type": "module",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Core utilities for agent-tail log capture plugins.",
     "license": "MIT",
     "repository": {
@@ -21,7 +21,10 @@
     "bin": {
         "agent-tail": "./dist/cli.mjs"
     },
-    "files": ["dist", "README.md"],
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "scripts": {
         "build": "tsdown",
         "typecheck": "tsc --noEmit"

@@ -1,7 +1,7 @@
 {
     "name": "next-plugin-agent-tail",
     "type": "module",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Next.js plugin for agent-tail — pipes browser console logs to files on disk during development.",
     "license": "MIT",
     "repository": {
@@ -10,7 +10,13 @@
         "directory": "packages/next-plugin"
     },
     "author": "Kyle Gill",
-    "keywords": ["next", "nextjs", "browser-logs", "console", "logging"],
+    "keywords": [
+        "next",
+        "nextjs",
+        "browser-logs",
+        "console",
+        "logging"
+    ],
     "exports": {
         ".": {
             "import": "./dist/index.mjs",
@@ -27,7 +33,10 @@
     },
     "main": "./dist/index.mjs",
     "types": "./dist/index.d.mts",
-    "files": ["dist", "README.md"],
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "scripts": {
         "build": "tsdown",
         "typecheck": "tsc --noEmit"
