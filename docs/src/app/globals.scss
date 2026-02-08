@@ -1581,7 +1581,12 @@ button {
 
   .toolbar-options {
     width: 100%;
+    min-height: 120px;
     max-height: 150px;
+  }
+
+  .toolbar-log-viewer {
+    min-height: 0;
   }
 
   .toolbar-divider {
