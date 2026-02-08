@@ -1173,9 +1173,6 @@ button {
 
 // Responsive — Hero Demo
 @media (max-width: 900px) {
-  .hero-demo {
-    padding: 0 1rem;
-  }
 
   .hero-demo-sources {
     flex-direction: column;
@@ -1290,7 +1287,10 @@ button {
 
   scrollbar-width: none;
   -ms-overflow-style: none;
-  &::-webkit-scrollbar { display: none; }
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .toolbar-options-section {
@@ -1331,11 +1331,25 @@ button {
   font-family: "SF Mono", SFMono-Regular, ui-monospace, Consolas, monospace;
   font-weight: 500;
 
-  &.level-log { color: rgba(0, 0, 0, 0.5); }
-  &.level-info { color: #2563eb; }
-  &.level-warn { color: #d97706; }
-  &.level-error { color: #dc2626; }
-  &.level-debug { color: #7c3aed; }
+  &.level-log {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  &.level-info {
+    color: #2563eb;
+  }
+
+  &.level-warn {
+    color: #d97706;
+  }
+
+  &.level-error {
+    color: #dc2626;
+  }
+
+  &.level-debug {
+    color: #7c3aed;
+  }
 }
 
 .toolbar-exclude-input {
@@ -1608,8 +1622,15 @@ button {
 }
 
 @keyframes bounce-down {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(3px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(3px);
+  }
 }
 
 .playground-section {
@@ -1666,28 +1687,36 @@ button {
     border-left: 2px solid #2563eb;
     color: #2563eb;
 
-    &:hover { background: rgba(37, 99, 235, 0.08); }
+    &:hover {
+      background: rgba(37, 99, 235, 0.08);
+    }
   }
 
   &.level-warn {
     border-left: 2px solid #d97706;
     color: #92400e;
 
-    &:hover { background: rgba(217, 119, 6, 0.08); }
+    &:hover {
+      background: rgba(217, 119, 6, 0.08);
+    }
   }
 
   &.level-error {
     border-left: 2px solid #dc2626;
     color: #991b1b;
 
-    &:hover { background: rgba(220, 38, 38, 0.08); }
+    &:hover {
+      background: rgba(220, 38, 38, 0.08);
+    }
   }
 
   &.level-debug {
     border-left: 2px solid #7c3aed;
     color: #7c3aed;
 
-    &:hover { background: rgba(124, 58, 237, 0.08); }
+    &:hover {
+      background: rgba(124, 58, 237, 0.08);
+    }
   }
 
   &.loading {
