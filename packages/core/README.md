@@ -7,7 +7,7 @@ CLI and shared core for [agent-tail](https://agent-tail.vercel.app/) — pipes s
 ## Quick start
 
 ```bash
-npx agent-tail-core run 'fe: npm run dev' 'api: uvicorn main:app'
+npx agent-tail run 'fe: npm run dev' 'api: uvicorn main:app'
 ```
 
 Each service gets its own log file (`fe.log`, `api.log`) plus a `combined.log` with all output interleaved. A `latest` symlink always points to the current session:

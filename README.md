@@ -9,7 +9,7 @@ Pipe dev server and browser console logs to log files on your machine that AI co
 **Try it!**
 
 ```bash
-npx agent-tail-core run 'server: echo "Hello world!"' && cat tmp/logs/latest/server.log
+npx agent-tail run 'server: echo "Hello world!"' && cat tmp/logs/latest/server.log
 ```
 
 That's the full cycle: run a command, output is captured to a log file, read the file.

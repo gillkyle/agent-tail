@@ -115,7 +115,7 @@ export default function OverviewPage() {
 				<section>
 					<h2>Try it</h2>
 					<CodeBlock
-						code={`npx agent-tail-core run 'server: echo "Hello world!"' && cat tmp/logs/latest/server.log`}
+						code={`npx agent-tail run 'server: echo "Hello world!"' && cat tmp/logs/latest/server.log`}
 						language="bash"
 						copyable
 					/>
