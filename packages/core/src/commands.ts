@@ -84,7 +84,7 @@ function write_to_logs(
     excludes: string[] = []
 ): void {
     const text = chunk.toString()
-    const lines = text.split("\n")
+    const lines = text.split(/\r?\n/)
     for (let i = 0; i < lines.length; i++) {
         if (lines[i].length > 0) {
             if (excludes.length && should_exclude(lines[i], excludes)) continue
@@ -131,9 +131,10 @@ export function cmd_wrap(
 
     console.log(`${PREFIX} ${name} → ${log_file}`)
 
-    const child = spawn("sh", ["-c", command.join(" ")], {
+    const child = spawn(command.join(" "), {
         stdio: ["inherit", "pipe", "pipe"],
         env: { ...process.env },
+        shell: true,
     })
 
     child.stdout?.on("data", (chunk: Buffer) => {
@@ -218,14 +219,15 @@ export function cmd_run(
         const log_file = path.join(session_dir, `${svc.name}.log`)
         const log_stream = fs.createWriteStream(log_file, { flags: "a" })
 
-        const child = spawn("sh", ["-c", svc.command], {
+        const child = spawn(svc.command, {
             stdio: ["inherit", "pipe", "pipe"],
             env: { ...process.env },
+            shell: true,
         })
 
         function handle(target: NodeJS.WriteStream, chunk: Buffer) {
             const text = chunk.toString()
-            const lines = text.split("\n")
+            const lines = text.split(/\r?\n/)
             for (let j = 0; j < lines.length; j++) {
                 if (lines[j].length > 0) {
                     if (options.excludes.length && should_exclude(lines[j], options.excludes)) continue

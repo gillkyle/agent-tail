@@ -49,7 +49,12 @@ export class LogManager {
             // doesn't exist yet
         }
         const relative_target = path.relative(log_dir, session_dir)
-        fs.symlinkSync(relative_target, latest_link)
+        try {
+            fs.symlinkSync(relative_target, latest_link)
+        } catch {
+            // Symlink failed (e.g. Windows without developer mode), use pointer file
+            fs.writeFileSync(latest_link, session_dir)
+        }
     }
 
     prune_sessions(log_dir: string): void {
@@ -83,9 +88,18 @@ export class LogManager {
         const latest_link = path.join(log_dir, "latest")
 
         try {
-            const real = fs.realpathSync(latest_link)
-            if (fs.statSync(real).isDirectory()) {
-                return real
+            const stat = fs.lstatSync(latest_link)
+            let target: string
+            if (stat.isSymbolicLink()) {
+                target = fs.realpathSync(latest_link)
+            } else if (stat.isFile()) {
+                // Pointer file fallback (Windows without symlink support)
+                target = fs.readFileSync(latest_link, "utf-8").trim()
+            } else {
+                throw new Error("unexpected latest type")
+            }
+            if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
+                return target
             }
         } catch {
             // no valid session yet
@@ -99,8 +113,9 @@ export class LogManager {
         const gitignore_path = path.join(project_root, ".gitignore")
         try {
             const content = fs.readFileSync(gitignore_path, "utf-8")
-            const lines = content.split("\n").map((l) => l.trim())
-            const log_dir = this.options.logDir
+            const lines = content.split(/\r?\n/).map((l) => l.trim())
+            // Normalize to forward slashes so gitignore comparison works on Windows
+            const log_dir = this.options.logDir.replace(/\\/g, "/")
 
             const parts = log_dir.split("/")
             let covered = false
