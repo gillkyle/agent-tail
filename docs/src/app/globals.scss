@@ -404,6 +404,9 @@ button {
     overflow: hidden;
     margin: 0.625rem 0;
     font-size: 0.75rem;
+    --diffs-font-size: 0.75rem;
+    --diffs-line-height: 1.55;
+    -webkit-text-size-adjust: 100%;
   }
 
   // Inline links in article content
