@@ -16,7 +16,7 @@ export default function FeaturesPage() {
         <section>
           <h2 id="readable-logs">Readable, greppable logs</h2>
           <p>
-            Logs are plain text files with a consistent format. Timestamps, levels, source locations, and stack traces are all there &mdash; easy for you to scan and easy for an AI to parse.
+            Logs are plain text files written to <code>tmp/logs/latest/</code> relative to your project root, with a consistent format. Timestamps, levels, source locations, and stack traces are all there &mdash; easy for you to scan and easy for an AI to parse.
           </p>
           <CodeBlock
             code={`[10:30:00.123] [LOG    ] User clicked button
