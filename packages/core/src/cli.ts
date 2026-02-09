@@ -17,6 +17,7 @@ const HELP = `
     --max-sessions <n>    Max sessions to keep (default: 10)
     --no-combined         Don't write to combined.log
     --exclude <pattern>   Exclude lines matching pattern (repeatable, /regex or substring)
+    --mute <name>         Mute a service from terminal and combined.log (repeatable, still logs to <name>.log)
     -h, --help            Show this help
 
   \x1b[1mExamples:\x1b[0m
@@ -42,6 +43,7 @@ function parse_cli_options(args: string[]): {
             "max-sessions": { type: "string", default: "10" },
             "no-combined": { type: "boolean", default: false },
             exclude: { type: "string", multiple: true },
+            mute: { type: "string", multiple: true },
             help: { type: "boolean", short: "h", default: false },
         },
         allowPositionals: true,
@@ -62,6 +64,7 @@ function parse_cli_options(args: string[]): {
             ),
             combined: !(values["no-combined"] as boolean),
             excludes: (values.exclude as string[] | undefined) ?? [],
+            mutes: (values.mute as string[] | undefined) ?? [],
         },
         positionals,
         rest,

@@ -25,6 +25,7 @@ const DEFAULT_OPTS: CliOptions = {
     max_sessions: 10,
     combined: true,
     excludes: [],
+    mutes: [],
 }
 
 describe("CLI commands", () => {
@@ -274,6 +275,61 @@ describe("CLI commands", () => {
             expect(content).toContain("keep this")
             expect(content).toContain("also keep")
             expect(content).not.toContain("noisy output")
+        })
+    })
+
+    describe("cmd_run with mute", () => {
+        it("muted service still writes to its individual log file", async () => {
+            vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+
+            const opts = { ...DEFAULT_OPTS, mutes: ["quiet"] }
+            await cmd_run(
+                temp_dir,
+                ["quiet: echo muted output"],
+                opts
+            )
+
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
+            const log_file = path.join(session_dir, "quiet.log")
+            const content = fs.readFileSync(log_file, "utf-8")
+
+            expect(content).toContain("muted output")
+        })
+
+        it("muted service is excluded from combined.log", async () => {
+            vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+
+            const opts = { ...DEFAULT_OPTS, mutes: ["quiet"] }
+            await cmd_run(
+                temp_dir,
+                ["loud: echo loud output", "quiet: echo quiet output"],
+                opts
+            )
+
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
+            const combined = path.join(session_dir, "combined.log")
+            const content = fs.readFileSync(combined, "utf-8")
+
+            expect(content).toContain("loud output")
+            expect(content).not.toContain("quiet output")
+        })
+
+        it("muted service is excluded from terminal output", async () => {
+            const write_spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+
+            const opts = { ...DEFAULT_OPTS, mutes: ["quiet"] }
+            await cmd_run(
+                temp_dir,
+                ["loud: echo visible", "quiet: echo hidden"],
+                opts
+            )
+
+            const terminal_output = write_spy.mock.calls.map(c => c[0].toString()).join("")
+
+            expect(terminal_output).toContain("visible")
+            expect(terminal_output).not.toContain("hidden")
         })
     })
 

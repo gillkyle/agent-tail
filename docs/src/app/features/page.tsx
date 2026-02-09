@@ -73,6 +73,18 @@ export default defineConfig({
           <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
             Plain strings are substring matches. Patterns starting with <code>/</code> are parsed as regex (e.g. <code>/^HMR/i</code>).
           </p>
+
+          <h3>Muting services</h3>
+          <p>
+            When debugging a single service, use <code>--mute</code> to silence others from the terminal and combined.log. Muted services still run and their output is captured to individual log files &mdash; they just don&rsquo;t clutter your terminal.
+          </p>
+          <CodeBlock
+            code={`agent-tail run --mute fe --mute worker 'fe: npm run dev' 'api: uv run server' 'worker: uv run worker'`}
+            language="bash"
+          />
+          <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
+            In this example, only <code>api</code> output appears in the terminal. All three services still log to <code>fe.log</code>, <code>api.log</code>, and <code>worker.log</code>.
+          </p>
         </section>
 
         <section>

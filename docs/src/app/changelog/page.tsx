@@ -26,6 +26,13 @@ const badgeLabels: Record<ChangeType, string> = {
 
 const releases: Release[] = [
   {
+    version: "0.3.3",
+    date: "February 2026",
+    changes: [
+      { type: "added", text: <><code>--mute</code> flag for <code>agent-tail run</code> &mdash; silence specific services from terminal and combined.log while still capturing their output to individual log files (e.g. <code>--mute fe --mute worker</code>)</> },
+    ],
+  },
+  {
     version: "0.3.2",
     date: "February 2026",
     changes: [

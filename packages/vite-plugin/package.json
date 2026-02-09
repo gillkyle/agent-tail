@@ -1,7 +1,7 @@
 {
     "name": "vite-plugin-agent-tail",
     "type": "module",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "description": "Vite plugin for agent-tail — pipes browser console logs to files on disk during development.",
     "license": "MIT",
     "repository": {

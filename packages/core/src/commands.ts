@@ -12,6 +12,7 @@ export interface CliOptions {
     max_sessions: number
     combined: boolean
     excludes: string[]
+    mutes: string[]
 }
 
 export const DEFAULT_CLI_OPTIONS: CliOptions = {
@@ -19,6 +20,7 @@ export const DEFAULT_CLI_OPTIONS: CliOptions = {
     max_sessions: 10,
     combined: true,
     excludes: [],
+    mutes: [],
 }
 
 export function create_manager(options: CliOptions): LogManager {
@@ -218,6 +220,7 @@ export function cmd_run(
 
         const log_file = path.join(session_dir, `${svc.name}.log`)
         const log_stream = fs.createWriteStream(log_file, { flags: "a" })
+        const is_muted = options.mutes.includes(svc.name)
 
         const child = spawn(svc.command, {
             stdio: ["inherit", "pipe", "pipe"],
@@ -232,12 +235,16 @@ export function cmd_run(
                 if (lines[j].length > 0) {
                     if (options.excludes.length && should_exclude(lines[j], options.excludes)) continue
                     log_stream.write(lines[j] + "\n")
-                    target.write(`${tag} ${lines[j]}\n`)
-                    combined_stream?.write(`[${svc.name}] ${lines[j]}\n`)
+                    if (!is_muted) {
+                        target.write(`${tag} ${lines[j]}\n`)
+                        combined_stream?.write(`[${svc.name}] ${lines[j]}\n`)
+                    }
                 } else if (j < lines.length - 1) {
                     log_stream.write("\n")
-                    target.write("\n")
-                    combined_stream?.write("\n")
+                    if (!is_muted) {
+                        target.write("\n")
+                        combined_stream?.write("\n")
+                    }
                 }
             }
         }
