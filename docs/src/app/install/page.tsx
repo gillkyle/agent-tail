@@ -203,13 +203,25 @@ export { POST } from "agent-tail/next/handler"`}
 				<section>
 					<h2 id="agent-setup">Agent setup</h2>
 					<p>
-						Optional. You can always point your agent at the logs manually, but
-						adding a snippet to your instructions file means it checks logs
-						automatically &mdash; before asking you what went wrong.
+						Install the agent-tail skill to give your AI coding agent built-in
+						knowledge of how to set up and use agent-tail:
+					</p>
+					<CodeBlock
+						code="npx skills add gillkyle/agent-tail"
+						language="bash"
+						copyable
+					/>
+					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
+						The skill activates automatically when you ask about capturing logs,
+						debugging runtime errors, or checking console output. Works with
+						Claude Code, Cursor, Codex, and{" "}
+						<a href="https://skills.sh" target="_blank" rel="noopener noreferrer">
+							other supported agents
+						</a>.
 					</p>
 					<p>
-						Add a section to your project&apos;s agent instructions file (
-						<code>CLAUDE.md</code>, <code>.cursorrules</code>,{" "}
+						Or add a snippet to your project&apos;s agent instructions file
+						manually (<code>CLAUDE.md</code>, <code>.cursorrules</code>,{" "}
 						<code>.github/copilot-instructions.md</code>, or equivalent):
 					</p>
 					<CodeBlock
@@ -218,16 +230,12 @@ export { POST } from "agent-tail/next/handler"`}
 All dev server output is captured to \`tmp/logs/\`. The latest session
 is symlinked at \`tmp/logs/latest/\`.
 
-When debugging, check logs before guessing about runtime behavior, ie:
+When debugging, check logs before guessing about runtime behavior:
 
     grep -ri "error\\|warn" tmp/logs/latest/
     tail -50 tmp/logs/latest/browser.log`}
 						language="markdown"
 					/>
-					<p>
-						That&apos;s all. The agent now knows where runtime truth lives and
-						can read logs instead of asking you to describe what went wrong.
-					</p>
 				</section>
 			</article>
 

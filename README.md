@@ -372,7 +372,15 @@ agent-tail works best with AI tools that have access to your codebase — Claude
 
 ## Agent Setup
 
-Add a section to your project's agent instructions file (`CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, or equivalent):
+Install the agent-tail skill to give your AI coding agent built-in knowledge of how to set up and use agent-tail:
+
+```bash
+npx skills add gillkyle/agent-tail
+```
+
+The skill activates automatically when you ask about capturing logs, debugging runtime errors, or checking console output. Works with Claude Code, Cursor, Codex, and [other supported agents](https://skills.sh).
+
+Or add a snippet to your project's agent instructions file manually (`CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, or equivalent):
 
 ```markdown
 ## Dev Logs
@@ -380,13 +388,11 @@ Add a section to your project's agent instructions file (`CLAUDE.md`, `.cursorru
 All dev server output is captured to `tmp/logs/`. The latest session
 is symlinked at `tmp/logs/latest/`.
 
-When debugging, check logs before guessing about runtime behavior, ie:
+When debugging, check logs before guessing about runtime behavior:
 
     grep -ri "error\|warn" tmp/logs/latest/
     tail -50 tmp/logs/latest/browser.log
 ```
-
-That's all. The agent now knows where runtime truth lives and can read logs instead of asking you to describe what went wrong.
 
 ## Configuration
 
