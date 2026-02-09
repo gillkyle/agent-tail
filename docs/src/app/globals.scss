@@ -234,6 +234,14 @@ button {
     align-items: center;
     gap: 0.25rem;
     margin-top: 0.75rem;
+    font-size: 0.625rem;
+    color: rgba(0, 0, 0, 0.2);
+  }
+
+  .nav-meta a {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
   }
 
   .nav-github {
