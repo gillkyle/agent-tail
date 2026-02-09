@@ -169,7 +169,13 @@ export default function APIReferencePage() {
               <div className="prop-header">
                 <code className="prop-name">--exclude &lt;pattern&gt;</code>
               </div>
-              <p className="prop-desc">Exclude lines matching pattern (repeatable). Plain strings are substring matches; strings starting with <code>/</code> are parsed as regex.</p>
+              <p className="prop-desc">Exclude lines matching pattern (repeatable). Plain strings are substring matches; strings starting with <code>/</code> are parsed as regex. Filters log <em>content</em> &mdash; matching lines are not written to any log file.</p>
+            </div>
+            <div className="prop-item">
+              <div className="prop-header">
+                <code className="prop-name">--mute &lt;name&gt;</code>
+              </div>
+              <p className="prop-desc">Mute a service by name from terminal output and combined.log (repeatable). The service still runs and logs to its individual <code>&lt;name&gt;.log</code> file. Only applies to <code>agent-tail run</code>.</p>
             </div>
           </div>
         </section>

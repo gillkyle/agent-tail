@@ -44,6 +44,7 @@ export function SideNav() {
 			items: [
 				{ id: "readable-logs", text: "Readable Logs" },
 				{ id: "log-filtering", text: "Log Filtering" },
+				{ id: "muting-services", text: "Muting Services" },
 				{ id: "multi-server", text: "Multi-Server" },
 				{ id: "searching-and-tailing", text: "Searching & Tailing" },
 				{ id: "captured-events", text: "Captured Events" },

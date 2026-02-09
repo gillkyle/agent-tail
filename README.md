@@ -19,7 +19,7 @@ That's the full cycle: run a command, output is captured to a log file, read the
 - [Server-side and client-side logs](#server-side-and-client-side-logs)
 - [Installation](#installation) — [CLI](#cli-server-side-logs) | [Vite](#vite-plugin-browser-logs) | [Next.js](#nextjs-plugin-browser-logs)
 - [Packages](#packages)
-- [Features](#features) — [Log filtering](#log-filtering) | [Multi-server](#multi-server-log-aggregation) | [Searching and tailing](#searching-and-tailing-logs) | [Captured events](#captured-browser-events) | [Session management](#session-management)
+- [Features](#features) — [Log filtering](#log-filtering) | [Muting services](#muting-services) | [Multi-server](#multi-server-log-aggregation) | [Searching and tailing](#searching-and-tailing-logs) | [Captured events](#captured-browser-events) | [Session management](#session-management)
 - [How agents use it](#how-agents-use-it)
 - [Agent Setup](#agent-setup)
 - [Configuration](#configuration) — [Vite](#vite-1) | [Next.js](#nextjs-1) | [CLI Options](#cli-options)
@@ -200,6 +200,18 @@ agent-tail run --exclude "[HMR]" --exclude "/^DEBUG/" 'fe: npm run dev'
 ```
 
 Plain strings are substring matches. Patterns starting with `/` are parsed as regex (e.g. `/^HMR/i`).
+
+### Muting services
+
+Different from `--exclude` which filters log *content*, `--mute` silences entire *services* from your terminal and combined.log. Muted services still run and their output is still captured to individual log files — they just don't clutter your terminal while you're debugging something else.
+
+```bash
+agent-tail run --mute fe --mute worker 'fe: npm run dev' 'api: uv run server' 'worker: uv run worker'
+```
+
+Only `api` output appears in your terminal. All three services still log to `fe.log`, `api.log`, and `worker.log` — so agents can still read everything.
+
+> **--exclude** filters noisy log lines by content (e.g. HMR messages). **--mute** hides entire services by name. Use `--exclude` to clean up what gets written to disk. Use `--mute` to focus your terminal on one service while debugging.
 
 ### Multi-server log aggregation
 
@@ -464,6 +476,7 @@ export { POST } from "agent-tail/next/handler"
 --max-sessions <n>    Max sessions to keep (default: 10)
 --no-combined         Don't write to combined.log
 --exclude <pattern>   Exclude lines matching pattern (repeatable, /regex/ or substring)
+--mute <name>         Mute a service from terminal and combined.log (repeatable, still logs to <name>.log)
 ```
 
 ## CLI Commands
@@ -477,6 +490,12 @@ agent-tail run 'fe: npm run dev' 'api: uv run server' 'worker: uv run worker'
 ```
 
 Creates a session directory, spawns all services, prefixes output with `[name]`, and writes individual + combined log files.
+
+Use `--mute` to silence specific services from the terminal while still capturing their logs:
+
+```bash
+agent-tail run --mute fe --mute worker 'fe: npm run dev' 'api: uv run server' 'worker: uv run worker'
+```
 
 ### `agent-tail wrap`
 
