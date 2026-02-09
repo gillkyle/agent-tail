@@ -7,6 +7,7 @@ import {
     LogManager,
     generate_client_script,
     should_exclude,
+    SESSION_ENV_VAR,
 } from "agent-tail-core"
 
 export function agentTail(user_options?: BrowserLogsOptions): Plugin {
@@ -19,8 +20,13 @@ export function agentTail(user_options?: BrowserLogsOptions): Plugin {
         apply: "serve",
 
         configureServer(server) {
-            const project_root = server.config.root
-            log_path = log_manager.initialize(project_root)
+            const parent_session = process.env[SESSION_ENV_VAR]
+            if (parent_session && fs.existsSync(parent_session)) {
+                log_path = log_manager.join_session(parent_session)
+            } else {
+                const project_root = server.config.root
+                log_path = log_manager.initialize(project_root)
+            }
 
             server.middlewares.use(options.endpoint, (req, res) => {
                 if (req.method !== "POST") {

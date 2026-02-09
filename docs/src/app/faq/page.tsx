@@ -25,7 +25,7 @@ const faqCategories: FAQCategory[] = [
 			{
 				question: "What is agent-tail?",
 				answer:
-					"agent-tail pipes browser console output to log files on disk during development. You can then <code>tail -f</code> them in your terminal alongside your backend server logs. It's designed for AI coding agents that already know how to read files and use <code>grep</code>.",
+					"agent-tail captures server output and browser console logs to plain text files on disk during development. The CLI wraps any command to capture stdout/stderr, and framework plugins for Vite and Next.js capture browser <code>console.*</code> calls. You can <code>tail -f</code> them in your terminal, and AI coding agents that already know how to read files and use <code>grep</code> can access them directly.",
 			},
 			{
 				question: "Which frameworks are supported?",
@@ -41,6 +41,11 @@ const faqCategories: FAQCategory[] = [
 				question: "How do I use this with non-JS backends?",
 				answer:
 					"Use <code>agent-tail run</code> or <code>agent-tail wrap</code> to capture stdout/stderr from any command. Or point your server's logging directly at <code>tmp/logs/latest/</code>. The README has examples for Python, Node.js, Ruby, and Go.",
+			},
+			{
+				question: "What gets captured?",
+				answer:
+					"<strong>CLI:</strong> stdout and stderr from any command.<br/><br/><strong>Plugins:</strong> <code>console.log</code>, <code>console.warn</code>, <code>console.error</code>, <code>console.info</code>, and <code>console.debug</code>.<br/><br/><strong>Unhandled errors</strong> (<code>window.onerror</code>) &mdash; logged as <code>UNCAUGHT_ERROR</code>.<br/><br/><strong>Unhandled promise rejections</strong> &mdash; logged as <code>UNHANDLED_REJECTION</code>.",
 			},
 		],
 	},

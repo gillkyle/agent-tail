@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process"
 import fs from "node:fs"
 import path from "node:path"
-import { LogManager } from "./log-manager"
+import { LogManager, SESSION_ENV_VAR } from "./log-manager"
 import { resolve_options } from "./types"
 import { should_exclude } from "./filter"
 
@@ -221,7 +221,7 @@ export function cmd_run(
 
         const child = spawn(svc.command, {
             stdio: ["inherit", "pipe", "pipe"],
-            env: { ...process.env },
+            env: { ...process.env, [SESSION_ENV_VAR]: session_dir },
             shell: true,
         })
 

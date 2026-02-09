@@ -3,9 +3,11 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 import {
   useLogCapture,
   type CapturedLogEntry,
@@ -58,6 +60,13 @@ export function ToolbarProvider({ children }: { children: ReactNode }) {
   const [captureErrors, setCaptureErrors] = useState(true);
   const [captureRejections, setCaptureRejections] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname === "/playground") {
+      setExpanded(true);
+    }
+  }, [pathname]);
 
   const { entries, clear } = useLogCapture({
     levels,

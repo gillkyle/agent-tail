@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { CodeBlock } from "./components/CodeBlock";
+import { DiffBlock } from "./components/DiffBlock";
 import { HeroDemo } from "./components/HeroDemo";
 import { Footer } from "./Footer";
 
@@ -104,7 +105,8 @@ export default function OverviewPage() {
 					<InstallSnippet />
 					<p className="tagline">
 						<code>agent-tail</code> pipes server output and browser console logs
-						to log files your AI coding agents can read and <code>grep</code>.
+						to a single consistent location your AI coding agents can easily
+						read and <code>grep</code>.
 					</p>
 				</header>
 			</article>
@@ -113,115 +115,136 @@ export default function OverviewPage() {
 
 			<article className="article" style={{ paddingTop: "1rem" }}>
 				<section>
+					<h2>How you use it</h2>
+
+					<h3>Wrap your dev command</h3>
+					<p>
+						The simplest path &mdash; add one line to your{" "}
+						<code>package.json</code>:
+					</p>
+					<DiffBlock
+						oldFile={{
+							name: "package.json",
+							contents: `{
+    "scripts": {
+        "dev": "npm run dev && uv run server"
+    }
+}`,
+						}}
+						newFile={{
+							name: "package.json",
+							contents: `{
+    "scripts": {
+        "dev": "agent-tail run 'fe: npm run dev' 'api: uv run server'"
+    }
+}
+`,
+						}}
+					/>
+					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
+						One line, zero config. Every service gets its own log file plus a{" "}
+						<code>combined.log</code>.
+					</p>
+
+					<h3>Add a framework plugin</h3>
+					<p>For browser console capture, add the Vite or Next.js plugin:</p>
+					<DiffBlock
+						oldFile={{
+							name: "vite.config.ts",
+							contents: `import { defineConfig } from "vite"
+
+export default defineConfig({
+    plugins: [],
+})
+`,
+						}}
+						newFile={{
+							name: "vite.config.ts",
+							contents: `import { defineConfig } from "vite"
+import { agentTail } from "agent-tail/vite"
+
+export default defineConfig({
+    plugins: [agentTail()],
+})`,
+						}}
+					/>
+					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
+						They&apos;re complementary &mdash; use the CLI for server output and
+						a plugin for browser console.{" "}
+						<Link href="/install" className="styled-link">
+							Next.js + full setup <span className="arrow">&rarr;</span>
+						</Link>
+					</p>
+					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
+						<Link href="/playground" className="styled-link">
+							try the playground <span className="arrow">&rarr;</span>
+						</Link>
+					</p>
+				</section>
+
+				<section>
+					<h2>How agents use it</h2>
+					<p>
+						agent-tail works best with AI tools that have access to your
+						codebase &mdash; Claude Code, Cursor, Amp, and others. When your
+						agent reads the log files, it gets:
+					</p>
+					<ul>
+						<li>Timestamped errors with source locations</li>
+						<li>Stack traces to trace the call path</li>
+						<li>Server and browser output side by side</li>
+						<li>
+							The exact error message &mdash; no paraphrasing, no guessing
+						</li>
+					</ul>
+
+					<h3>Without agent-tail</h3>
+					<p>
+						You copy-paste from browser devtools, describe the error in prose
+						(&ldquo;there&apos;s a 500 on the users page&rdquo;), and hope the
+						agent guesses right. Or you install an MCP browser tool that
+						requires a running connection, can&apos;t be piped through{" "}
+						<code>grep</code>, and gives you structured results you can&apos;t
+						compose with other tools.
+					</p>
+
+					<h3>With agent-tail</h3>
+					<p>
+						Every time you start your dev server, agent-tail creates a new
+						session directory and symlinks <code>tmp/logs/latest/</code> to it.
+						The agent runs <code>grep ERROR tmp/logs/latest/</code> and gets the
+						exact stack trace, source file, and line number. Plain files &mdash;
+						no connection state, no tool registration, no token overhead. Agents
+						already know how to read files.
+					</p>
+				</section>
+
+				<section id="try-it">
 					<h2>Try it</h2>
+					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
+						Run a dummy command to see how simple the output capture really is.{" "}
+						<Link href="/playground" className="styled-link">
+							Or try the interactive playground{" "}
+							<span className="arrow">&rarr;</span>
+						</Link>
+					</p>
 					<CodeBlock
 						code={`npx agent-tail run 'server: echo "Hello world!"' && cat tmp/logs/latest/server.log`}
 						language="bash"
 						copyable
 					/>
 					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
-						Run a command, output is captured to a log file, read the file.
-						That&apos;s the full cycle.
-					</p>
-				</section>
-
-				<section>
-					<h2>Two ways to use agent-tail</h2>
-
-					<h3>CLI &mdash; capture server output</h3>
-					<p>
-						<code>agent-tail run</code> wraps any command (or commands!) and
-						pipes their stdout/stderr to log files. Works with any dev server,
-						any language, zero config.
-					</p>
-					<CodeBlock
-						code={`agent-tail run 'fe: npm run dev' 'api: uv run server'`}
-						language="bash"
-						copyable
-					/>
-
-					<h3>Framework plugins &mdash; capture browser console output</h3>
-					<p>
-						The Vite and Next.js plugins inject a small script that intercepts{" "}
-						<code>console.log</code>, <code>console.warn</code>,{" "}
-						<code>console.error</code>, unhandled errors, and unhandled promise
-						rejections. Logs are sent to the dev server and written to{" "}
-						<code>browser.log</code>.
-					</p>
-
-					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
-						They&apos;re complementary: use both to get server + browser logs in
-						one place.
-					</p>
-				</section>
-
-				<section>
-					<h2>Quick start (Vite)</h2>
-					<CodeBlock
-						code={`npm install -D agent-tail`}
-						language="bash"
-						copyable
-					/>
-					<CodeBlock
-						code={`// vite.config.ts
-import { defineConfig } from "vite"
-import { agentTail } from "agent-tail/vite"
-
-export default defineConfig({
-    plugins: [agentTail()],
-})`}
-						language="typescript"
-					/>
-					<p>Then in another terminal:</p>
-					<CodeBlock
-						code="tail -f tmp/logs/latest/browser.log"
-						language="bash"
-						copyable
-					/>
-					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
-						Or skip the plugin entirely and use the CLI:{" "}
-						<code>agent-tail run &apos;fe: npm run dev&apos;</code>
-					</p>
-				</section>
-
-				<section>
-					<h2>What gets captured</h2>
-					<ul>
-						<li>
-							<strong>CLI:</strong> stdout and stderr from any command
-						</li>
-						<li>
-							<strong>Plugins:</strong> <code>console.log</code>,{" "}
-							<code>console.warn</code>, <code>console.error</code>,{" "}
-							<code>console.info</code>, <code>console.debug</code>
-						</li>
-						<li>
-							<strong>Unhandled errors</strong> (<code>window.onerror</code>)
-							&mdash; logged as <code>UNCAUGHT_ERROR</code>
-						</li>
-						<li>
-							<strong>Unhandled promise rejections</strong> &mdash; logged as{" "}
-							<code>UNHANDLED_REJECTION</code>
-						</li>
-					</ul>
-				</section>
-
-				<section>
-					<h2>Why files, not MCP</h2>
-					<p>
-						Plain log files beat a protocol server for this use case. They work
-						with any agent, any editor, <code>tail</code>, <code>grep</code>,{" "}
-						<code>awk</code>. No connection state, no tool registration, no
-						token overhead. Agents already know how to read files.
-					</p>
-					<p>
-						<Link href="/faq" className="styled-link">
-							Read more in the FAQ <span className="arrow">&rarr;</span>
-						</Link>
+						You run any command, output is captured to a log file, you or an
+						agent can read the file. That&apos;s the full cycle.{" "}
 					</p>
 				</section>
 
 				<section className="quickstart-links">
+					<p>
+						<Link href="/playground" className="styled-link">
+							Interactive playground <span className="arrow">&rarr;</span>
+						</Link>
+					</p>
 					<p>
 						<Link href="/install" className="styled-link">
 							Installation guides for Vite, Next.js, and CLI{" "}
@@ -230,7 +253,7 @@ export default defineConfig({
 					</p>
 					<p>
 						<Link href="/features" className="styled-link">
-							Session management, multi-server aggregation, and more{" "}
+							Log filtering, multi-server aggregation, and more features{" "}
 							<span className="arrow">&rarr;</span>
 						</Link>
 					</p>

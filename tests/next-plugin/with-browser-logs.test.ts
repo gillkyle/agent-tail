@@ -3,6 +3,7 @@ import fs from "node:fs"
 import path from "node:path"
 import os from "node:os"
 import { withAgentTail } from "../../packages/next-plugin/src/with-browser-logs"
+import { SESSION_ENV_VAR } from "../../packages/core/src/log-manager"
 
 function create_temp_dir(): string {
     return fs.mkdtempSync(path.join(os.tmpdir(), "browser-logs-next-cfg-"))
@@ -75,5 +76,24 @@ describe("withAgentTail", () => {
         const config = withAgentTail({}, { endpoint: "/__custom" })
 
         expect(config.env?.__BROWSER_LOGS_ENDPOINT).toBe("/__custom")
+    })
+
+    it("joins an existing session from AGENT_TAIL_SESSION env var", () => {
+        const session_dir = path.join(temp_dir, "tmp/logs/existing-session")
+        fs.mkdirSync(session_dir, { recursive: true })
+
+        process.env[SESSION_ENV_VAR] = session_dir
+
+        const config = withAgentTail({})
+
+        // Log path should point into the existing session
+        expect(config.env?.__BROWSER_LOGS_PATH).toContain("existing-session")
+        expect(config.env?.__BROWSER_LOGS_PATH).toContain("browser.log")
+
+        // browser.log should exist in the joined session
+        const log_file = path.join(session_dir, "browser.log")
+        expect(fs.existsSync(log_file)).toBe(true)
+
+        delete process.env[SESSION_ENV_VAR]
     })
 })

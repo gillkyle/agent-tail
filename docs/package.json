@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@pierre/diffs": "^1.0.10",
     "framer-motion": "^12.28.1",
     "next": "^16.1.6",
     "prism-react-renderer": "^2.4.1",

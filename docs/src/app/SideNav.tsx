@@ -31,23 +31,23 @@ export function SideNav() {
 			href: "/install",
 			label: "Install",
 			items: [
+				{ id: "cli", text: "CLI" },
 				{ id: "vite", text: "Vite" },
 				{ id: "nextjs", text: "Next.js" },
-				{ id: "cli", text: "CLI" },
 				{ id: "gitignore", text: ".gitignore" },
+				{ id: "agent-setup", text: "Agent Setup" },
 			],
 		},
 		{
 			href: "/features",
 			label: "Features",
 			items: [
-				{ id: "session-management", text: "Session Management" },
-				{ id: "log-format", text: "Log Format" },
-				{ id: "cli-commands", text: "CLI Commands" },
+				{ id: "readable-logs", text: "Readable Logs" },
+				{ id: "log-filtering", text: "Log Filtering" },
 				{ id: "multi-server", text: "Multi-Server" },
 				{ id: "searching-and-tailing", text: "Searching & Tailing" },
 				{ id: "captured-events", text: "Captured Events" },
-				{ id: "agent-setup", text: "Agent Setup" },
+				{ id: "session-management", text: "Session Management" },
 			],
 		},
 		{
@@ -55,6 +55,7 @@ export function SideNav() {
 			label: "API Reference",
 			items: [
 				{ id: "options", text: "Options" },
+				{ id: "cli-commands", text: "CLI Commands" },
 				{ id: "cli-options", text: "CLI Options" },
 				{ id: "log-entry", text: "LogEntry" },
 				{ id: "log-format", text: "Log Format" },

@@ -4,6 +4,7 @@ import path from "node:path"
 import os from "node:os"
 import { EventEmitter } from "node:events"
 import { agentTail } from "../../packages/vite-plugin/src/plugin"
+import { SESSION_ENV_VAR } from "../../packages/core/src/log-manager"
 
 function create_temp_dir(): string {
     return fs.mkdtempSync(path.join(os.tmpdir(), "browser-logs-vite-test-"))
@@ -182,6 +183,53 @@ describe("agentTail vite plugin", () => {
         expect(content).toContain("keep this")
         expect(content).toContain("also keep")
         expect(content).not.toContain("noisy message")
+    })
+
+    it("joins an existing session from AGENT_TAIL_SESSION env var", () => {
+        const session_dir = path.join(temp_dir, "tmp/logs/existing-session")
+        fs.mkdirSync(session_dir, { recursive: true })
+
+        process.env[SESSION_ENV_VAR] = session_dir
+
+        const plugin = agentTail()
+        let handler: Function = () => {}
+        const mock_server = {
+            config: { root: temp_dir },
+            middlewares: {
+                use: (_p: string, h: Function) => {
+                    handler = h
+                },
+            },
+        }
+
+        vi.spyOn(console, "log").mockImplementation(() => {})
+        ;(plugin as any).configureServer(mock_server)
+
+        // browser.log should be in the existing session, not a new one
+        const log_file = path.join(session_dir, "browser.log")
+        expect(fs.existsSync(log_file)).toBe(true)
+
+        // No new session directory should have been created
+        const entries = fs.readdirSync(path.join(temp_dir, "tmp/logs"))
+        const session_dirs = entries.filter(e => e !== "existing-session" && e !== "latest")
+        expect(session_dirs.length).toBe(0)
+
+        // Verify browser logs written via middleware land in the joined session
+        const log_entries = [
+            { level: "log", args: ["from joined session"], timestamp: "10:30:00.123" },
+        ]
+        const req = new EventEmitter() as any
+        req.method = "POST"
+        const res = { writeHead: vi.fn(), end: vi.fn() }
+
+        handler(req, res)
+        req.emit("data", Buffer.from(JSON.stringify(log_entries)))
+        req.emit("end")
+
+        const content = fs.readFileSync(log_file, "utf-8")
+        expect(content).toContain("from joined session")
+
+        delete process.env[SESSION_ENV_VAR]
     })
 
     it("transforms index HTML with script injection", () => {

@@ -4,6 +4,8 @@ import type { ResolvedOptions } from "./types"
 
 const PLUGIN_PREFIX = "\x1b[36m[agent-tail]\x1b[0m"
 
+export const SESSION_ENV_VAR = "AGENT_TAIL_SESSION"
+
 let session_counter = 0
 
 export class LogManager {
@@ -77,6 +79,20 @@ export class LogManager {
         } catch {
             // log dir might not exist yet
         }
+    }
+
+    /**
+     * Join an existing session directory. Creates the log file if it doesn't
+     * exist. Use this when a parent process (e.g. `agent-tail run`) has
+     * already created the session and passed its path via AGENT_TAIL_SESSION.
+     */
+    join_session(session_dir: string): string {
+        const log_file = path.join(session_dir, this.options.logFileName)
+        if (!fs.existsSync(log_file)) {
+            fs.writeFileSync(log_file, "")
+        }
+        console.log(`${PLUGIN_PREFIX} Writing to ${log_file}`)
+        return log_file
     }
 
     /**

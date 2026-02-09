@@ -398,6 +398,14 @@ button {
     margin: 0.625rem 0;
   }
 
+  .diff-block {
+    border-radius: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    margin: 0.625rem 0;
+    font-size: 0.75rem;
+  }
+
   // Inline links in article content
   p a,
   li a,
@@ -1606,8 +1614,8 @@ button {
 .playground-hint {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 0.875rem;
+  gap: 1rem;
+  padding: 0.625rem 1rem;
   background: rgba(36, 128, 237, 0.06);
   border-radius: 0.5rem;
   font-size: 0.8125rem;
@@ -1621,7 +1629,7 @@ button {
 }
 
 .playground-hint-icon {
-  font-size: 0.625rem;
+  font-size: 0.65rem;
   color: var(--hyperlink-color);
   animation: bounce-down 1.5s ease-in-out infinite;
 }
@@ -1684,13 +1692,36 @@ button {
     transform: scale(0.97);
   }
 
-  &.level-log {
-    border-left: 2px solid rgba(0, 0, 0, 0.2);
+  &.level-log,
+  &.level-info,
+  &.level-warn,
+  &.level-error,
+  &.level-debug {
+    padding-left: calc(0.625rem + 10px);
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0.375rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+  }
+
+  &.level-log::before {
+    background: rgba(0, 0, 0, 0.2);
   }
 
   &.level-info {
-    border-left: 2px solid #2563eb;
     color: #2563eb;
+
+    &::before {
+      background: #2563eb;
+    }
 
     &:hover {
       background: rgba(37, 99, 235, 0.08);
@@ -1698,8 +1729,11 @@ button {
   }
 
   &.level-warn {
-    border-left: 2px solid #d97706;
     color: #92400e;
+
+    &::before {
+      background: #d97706;
+    }
 
     &:hover {
       background: rgba(217, 119, 6, 0.08);
@@ -1707,8 +1741,11 @@ button {
   }
 
   &.level-error {
-    border-left: 2px solid #dc2626;
     color: #991b1b;
+
+    &::before {
+      background: #dc2626;
+    }
 
     &:hover {
       background: rgba(220, 38, 38, 0.08);
@@ -1716,8 +1753,11 @@ button {
   }
 
   &.level-debug {
-    border-left: 2px solid #7c3aed;
     color: #7c3aed;
+
+    &::before {
+      background: #7c3aed;
+    }
 
     &:hover {
       background: rgba(124, 58, 237, 0.08);

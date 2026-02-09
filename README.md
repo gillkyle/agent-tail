@@ -14,9 +14,11 @@ npx agent-tail run 'server: echo "Hello world!"' && cat tmp/logs/latest/server.l
 
 That's the full cycle: run a command, output is captured to a log file, read the file.
 
-## Two ways to use agent-tail
+## Server-side and client-side logs
 
-### 1. CLI — capture server output
+agent-tail captures two kinds of logs: **server-side** output (stdout/stderr from your dev commands) and **client-side** output (browser `console.*` calls). The CLI handles server logs and works with any stack. Framework plugins for Vite and Next.js handle browser logs.
+
+### CLI — server-side logs
 
 `agent-tail run` wraps any command (or commands!) and pipes their stdout/stderr to log files. Works with any dev server, any language, zero config.
 
@@ -26,13 +28,13 @@ agent-tail run 'fe: npm run dev' 'api: uv run server'
 
 Each service gets its own log file (`api.log`, `worker.log`) plus a `combined.log` with all output interleaved. See [CLI: `agent-tail`](#cli-agent-tail) for full usage.
 
-### 2. Framework plugins — capture browser console output
+### Framework plugins — browser logs
 
 The Vite and Next.js plugins inject a small script into your HTML that intercepts `console.log`, `console.warn`, `console.error`, unhandled errors, and unhandled promise rejections. Captured logs are sent to the dev server and written to `browser.log`.
 
 See [Quick Start](#quick-start) below for setup.
 
-### Then, use both together
+### Use both together
 
 The CLI and framework plugins write to the same session directory. Run your Vite dev server through `agent-tail run` and you get server output *and* browser console logs in one place:
 
@@ -46,7 +48,7 @@ agent-tail run 'fe: npm run dev' 'api: uv run server'
 
 ## Table of Contents
 
-- [Two ways to use agent-tail](#two-ways-to-use-agent-tail) — [CLI](#cli--capture-server-output) | [Framework plugins](#framework-plugins--capture-browser-console-output)
+- [Server-side and client-side logs](#server-side-and-client-side-logs) — [CLI](#cli--server-side-logs) | [Framework plugins](#framework-plugins--browser-logs)
 - [Packages](#packages)
 - [Quick Start](#quick-start) — [Vite](#vite) | [Next.js](#nextjs)
 - [How It Works](#how-it-works)
@@ -190,6 +192,7 @@ agentTail({
     levels: ["log", "warn", "error", "info", "debug"],
     captureErrors: true,            // Capture unhandled window errors
     captureRejections: true,        // Capture unhandled promise rejections
+    excludes: [],                   // Patterns to exclude (substring or /regex/)
 })
 ```
 
@@ -214,6 +217,7 @@ export default withAgentTail(
         maxLogSessions: 10,             // Max session directories to keep
         endpoint: "/__browser-logs",    // Server endpoint for log ingestion
         warnOnMissingGitignore: true,   // Warn if logDir isn't gitignored
+        excludes: [],                   // Patterns to exclude (substring or /regex/)
     }
 )
 ```
@@ -356,6 +360,7 @@ If no session exists when `wrap` is called, it creates one automatically.
 --log-dir <dir>       Log directory relative to cwd (default: tmp/logs)
 --max-sessions <n>    Max sessions to keep (default: 10)
 --no-combined         Don't write to combined.log
+--exclude <pattern>   Exclude lines matching pattern (repeatable, /regex/ or substring)
 ```
 
 ## Multi-Server Log Aggregation

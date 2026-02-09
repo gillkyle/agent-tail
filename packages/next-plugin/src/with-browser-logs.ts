@@ -1,5 +1,6 @@
 import type { BrowserLogsOptions } from "agent-tail-core"
-import { resolve_options, LogManager } from "agent-tail-core"
+import fs from "node:fs"
+import { resolve_options, LogManager, SESSION_ENV_VAR } from "agent-tail-core"
 
 interface NextConfig {
     env?: Record<string, string>
@@ -14,9 +15,15 @@ export function withAgentTail(
     const options = resolve_options(user_options)
     const log_manager = new LogManager(options)
 
-    // Initialize log directory at config time (runs when dev server starts)
-    const project_root = process.cwd()
-    const log_path = log_manager.initialize(project_root)
+    // Join an existing session from the CLI, or create a new one
+    const parent_session = process.env[SESSION_ENV_VAR]
+    let log_path: string
+    if (parent_session && fs.existsSync(parent_session)) {
+        log_path = log_manager.join_session(parent_session)
+    } else {
+        const project_root = process.cwd()
+        log_path = log_manager.initialize(project_root)
+    }
 
     return {
         ...next_config,

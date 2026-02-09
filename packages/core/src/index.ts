@@ -1,7 +1,7 @@
 export { format_log_line } from "./formatter"
 export { should_exclude } from "./filter"
 export { generate_client_script } from "./client"
-export { LogManager } from "./log-manager"
+export { LogManager, SESSION_ENV_VAR } from "./log-manager"
 export { resolve_options, DEFAULT_OPTIONS } from "./types"
 export type { BrowserLogsOptions, LogEntry, ResolvedOptions } from "./types"
 export { cmd_init, cmd_wrap, cmd_run, resolve_session_dir, parse_service_configs } from "./commands"

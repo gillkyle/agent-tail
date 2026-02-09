@@ -159,6 +159,43 @@ describe("LogManager", () => {
         })
     })
 
+    describe("join_session", () => {
+        it("creates the log file in an existing session directory", () => {
+            const manager = new LogManager(options)
+            const session_dir = path.join(temp_dir, "tmp/logs/pre-existing-session")
+            fs.mkdirSync(session_dir, { recursive: true })
+
+            const log_path = manager.join_session(session_dir)
+
+            expect(log_path).toBe(path.join(session_dir, "browser.log"))
+            expect(fs.existsSync(log_path)).toBe(true)
+        })
+
+        it("does not overwrite an existing log file", () => {
+            const manager = new LogManager(options)
+            const session_dir = path.join(temp_dir, "tmp/logs/pre-existing-session")
+            fs.mkdirSync(session_dir, { recursive: true })
+            const log_file = path.join(session_dir, "browser.log")
+            fs.writeFileSync(log_file, "existing content\n")
+
+            const log_path = manager.join_session(session_dir)
+
+            expect(fs.readFileSync(log_path, "utf-8")).toBe("existing content\n")
+        })
+
+        it("does not create a new session directory", () => {
+            const manager = new LogManager(options)
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = path.join(log_dir, "pre-existing-session")
+            fs.mkdirSync(session_dir, { recursive: true })
+
+            manager.join_session(session_dir)
+
+            const entries = fs.readdirSync(log_dir)
+            expect(entries).toEqual(["pre-existing-session"])
+        })
+    })
+
     describe("check_gitignore", () => {
         it("warns when logDir is not in .gitignore", () => {
             const warn_spy = vi.spyOn(console, "warn").mockImplementation(() => {})

@@ -2,6 +2,7 @@
 
 import { Footer } from "../Footer";
 import { CodeBlock } from "../components/CodeBlock";
+import { DiffBlock } from "../components/DiffBlock";
 
 export default function FeaturesPage() {
   return (
@@ -9,31 +10,14 @@ export default function FeaturesPage() {
       <article className="article">
         <header>
           <h1>Features</h1>
-          <p className="tagline">Everything agent-tail can do</p>
+          <p className="tagline">What you get with agent-tail</p>
         </header>
 
         <section>
-          <h2 id="session-management">Session management</h2>
+          <h2 id="readable-logs">Readable, greppable logs</h2>
           <p>
-            Each dev server start creates a new timestamped session directory. A <code>latest</code> symlink always points to the most recent session, so <code>tail -f tmp/logs/latest/browser.log</code> always works.
+            Logs are plain text files with a consistent format. Timestamps, levels, source locations, and stack traces are all there &mdash; easy for you to scan and easy for an AI to parse.
           </p>
-          <ul>
-            <li><strong>Timestamped directories</strong> &mdash; e.g. <code>2024-01-15T10-30-00-123Z/</code></li>
-            <li><strong>Latest symlink</strong> &mdash; always points to the newest session</li>
-            <li><strong>Auto-pruning</strong> &mdash; old sessions beyond the limit are removed (default: keep 10)</li>
-            <li><strong>Gitignore detection</strong> &mdash; warns if your log directory isn&apos;t in <code>.gitignore</code></li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 id="log-format">Log format</h2>
-          <CodeBlock
-            code={`[HH:MM:SS.mmm] [LEVEL  ] message (url)
-    stack trace line 1
-    stack trace line 2`}
-            language="bash"
-          />
-          <p>Example output:</p>
           <CodeBlock
             code={`[10:30:00.123] [LOG    ] User clicked button
 [10:30:00.456] [WARN   ] Deprecated API call
@@ -43,42 +27,59 @@ export default function FeaturesPage() {
         at handleClick (http://localhost:5173/src/app.ts:15:5)`}
             language="bash"
           />
+          <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
+            Levels are padded to 7 characters for alignment. Stack traces are indented. Source URLs are included for errors.
+          </p>
         </section>
 
         <section>
-          <h2 id="cli-commands">CLI commands</h2>
+          <h2 id="log-filtering">Log filtering</h2>
+          <p>
+            Not every log line is useful &mdash; HMR updates, noisy debug output, and framework internals add clutter that wastes AI context. The <code>excludes</code> option lets you filter them out before they hit disk.
+          </p>
+          <DiffBlock
+            oldFile={{
+              name: "vite.config.ts",
+              contents: `import { defineConfig } from "vite"
+import { agentTail } from "agent-tail/vite"
 
-          <h3><code>agent-tail run</code></h3>
-          <p>The easiest way to use agent-tail. Add it to <code>package.json</code> and forget about it:</p>
-          <CodeBlock
-            code={`{
-    "scripts": {
-        "dev": "agent-tail run 'fe: npm run dev' 'api: uv run server' 'worker: uv run worker'"
-    }
-}`}
-            language="json"
+export default defineConfig({
+    plugins: [agentTail()],
+})`,
+            }}
+            newFile={{
+              name: "vite.config.ts",
+              contents: `import { defineConfig } from "vite"
+import { agentTail } from "agent-tail/vite"
+
+export default defineConfig({
+    plugins: [
+        agentTail({
+            excludes: [
+                "[HMR]",           // substring match
+                "Download the React DevTools",
+                "/^\\[vite\\]/",     // regex match
+            ],
+        }),
+    ],
+})`,
+            }}
           />
-          <p>This creates a session, spawns all services concurrently, prefixes each line with <code>[name]</code> (color-coded), writes individual log files, and writes a <code>combined.log</code> with all output interleaved.</p>
-
-          <h3><code>agent-tail wrap</code></h3>
-          <p>Wraps a single command, piping its stdout/stderr to a named log file in the current session:</p>
+          <p>The CLI supports it too, with repeatable <code>--exclude</code> flags:</p>
           <CodeBlock
-            code={`npx agent-tail wrap api -- uv run fastapi-server
-npx agent-tail wrap worker -- python -m celery worker -A myapp`}
+            code={`agent-tail run --exclude "[HMR]" --exclude "/^DEBUG/" 'fe: npm run dev'`}
             language="bash"
           />
           <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
-            If no session exists yet, <code>wrap</code> creates one automatically. If a session already exists (e.g. started by the Vite plugin), it reuses it.
+            Plain strings are substring matches. Patterns starting with <code>/</code> are parsed as regex (e.g. <code>/^HMR/i</code>).
           </p>
-
-          <h3><code>agent-tail init</code></h3>
-          <p>Creates a new log session directory and prints the path:</p>
-          <CodeBlock code="npx agent-tail init" language="bash" />
         </section>
 
         <section>
           <h2 id="multi-server">Multi-server log aggregation</h2>
-          <p>Three ways to unify logs from multiple servers:</p>
+          <p>
+            Most projects run more than one process &mdash; a frontend, an API, maybe a worker. agent-tail can aggregate all of them into one session directory.
+          </p>
 
           <h3>1. Use <code>agent-tail run</code> (recommended)</h3>
           <p>Run everything from one command. All output goes to the same session automatically.</p>
@@ -115,6 +116,9 @@ const log_stream = fs.createWriteStream(
 
         <section>
           <h2 id="searching-and-tailing">Searching and tailing logs</h2>
+          <p>
+            Because logs are plain files, every standard Unix tool works out of the box. Here are the most useful patterns:
+          </p>
           <CodeBlock
             code={`# Follow all logs in real time
 tail -f tmp/logs/latest/*.log
@@ -144,39 +148,35 @@ rg "ERROR|WARN" tmp/logs/latest/`}
         </section>
 
         <section>
-          <h2 id="captured-events">Captured events</h2>
-          <p>Beyond console methods, the plugin captures:</p>
+          <h2 id="captured-events">Captured browser events</h2>
+          <p>The framework plugins capture more than just <code>console.*</code> calls:</p>
           <ul>
-            <li><strong>Unhandled errors</strong> (<code>window.onerror</code>) &mdash; logged as <code>UNCAUGHT_ERROR</code></li>
+            <li><strong>Unhandled errors</strong> (<code>window.onerror</code>) &mdash; logged as <code>UNCAUGHT_ERROR</code> with full stack traces</li>
             <li><strong>Unhandled promise rejections</strong> &mdash; logged as <code>UNHANDLED_REJECTION</code></li>
           </ul>
           <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
-            Disable with <code>captureErrors: false</code> and <code>captureRejections: false</code>.
+            These are the errors that silently break your app in the browser. Disable with <code>captureErrors: false</code> and <code>captureRejections: false</code>.
           </p>
         </section>
 
         <section>
-          <h2 id="agent-setup">Agent setup</h2>
+          <h2 id="session-management">Session management</h2>
           <p>
-            Tell your AI agent where the logs are. Add a snippet like this to your project&apos;s agent instructions file (<code>CLAUDE.md</code>, <code>.cursorrules</code>, or equivalent):
+            Each <code>agent-tail run</code> (or dev server start with a
+            framework plugin) creates a new <strong>session</strong> &mdash; a
+            timestamped directory under <code>tmp/logs/</code> that holds all
+            log files for that run. A <code>latest</code> symlink always points
+            to the most recent session, so <code>tmp/logs/latest/</code> is
+            always the right path to give your agent.
           </p>
-          <CodeBlock
-            code={`## Dev Logs
-
-All dev server output is piped to \`tmp/logs/\`. The latest session is
-symlinked at \`tmp/logs/latest/\`. Browser console output (console.log,
-console.warn, console.error, unhandled errors, unhandled promise rejections)
-is automatically captured to \`tmp/logs/latest/browser.log\` via a Vite plugin
-during development.
-
-When debugging, always check recent logs before guessing:
-
-    grep -ri "error\\|warn" tmp/logs/latest/
-    tail -50 tmp/logs/latest/browser.log`}
-            language="markdown"
-          />
-          <p>This gives the agent passive context about where runtime truth lives, so it reads logs instead of speculating.</p>
+          <ul>
+            <li><strong>Timestamped directories</strong> &mdash; e.g. <code>2024-01-15T10-30-00-123Z/</code></li>
+            <li><strong>Latest symlink</strong> &mdash; updated on every new session, always points to the newest one</li>
+            <li><strong>Auto-pruning</strong> &mdash; old sessions beyond the limit are removed (default: keep 10)</li>
+            <li><strong>Gitignore detection</strong> &mdash; warns if your log directory isn&apos;t in <code>.gitignore</code></li>
+          </ul>
         </section>
+
       </article>
 
       <Footer />

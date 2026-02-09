@@ -10,6 +10,7 @@ import {
     parse_service_configs,
 } from "../../packages/core/src/commands"
 import type { CliOptions } from "../../packages/core/src/commands"
+import { SESSION_ENV_VAR } from "../../packages/core/src/log-manager"
 
 function create_temp_dir(): string {
     return fs.mkdtempSync(path.join(os.tmpdir(), "agent-tail-cli-test-"))
@@ -231,6 +232,26 @@ describe("CLI commands", () => {
             expect(content).toContain("public line")
             expect(content).toContain("another line")
             expect(content).not.toContain("secret data")
+        })
+    })
+
+    describe("cmd_run session env var", () => {
+        it("passes AGENT_TAIL_SESSION to child processes", async () => {
+            vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+
+            await cmd_run(
+                temp_dir,
+                [`svc: echo $${SESSION_ENV_VAR}`],
+                DEFAULT_OPTS
+            )
+
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
+            const log_file = path.join(session_dir, "svc.log")
+            const content = fs.readFileSync(log_file, "utf-8")
+
+            // Resolve both paths to handle macOS /var -> /private/var symlink
+            expect(fs.realpathSync(content.trim())).toBe(session_dir)
         })
     })
 

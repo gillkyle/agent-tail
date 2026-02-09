@@ -104,12 +104,48 @@ export default function APIReferencePage() {
               </div>
               <p className="prop-desc">Capture unhandled promise rejections</p>
             </div>
+            <div className="prop-item">
+              <div className="prop-header">
+                <code className="prop-name">excludes</code>
+                <span className="prop-type">string[]</span>
+                <span className="prop-default">default: []</span>
+              </div>
+              <p className="prop-desc">Patterns to exclude from logs. Plain strings are substring matches; strings starting with <code>/</code> are parsed as regex (e.g. <code>/^HMR/i</code>). Filtering runs both client-side and server-side.</p>
+            </div>
           </div>
         </section>
 
         <section>
+          <h2 id="cli-commands">CLI commands</h2>
+
+          <h3><code>agent-tail run</code></h3>
+          <p>Spawn one or more commands with unified logging. Each argument is a <code>name: command</code> pair:</p>
+          <CodeBlock
+            code={`agent-tail run 'fe: npm run dev' 'api: uv run server' 'worker: uv run worker'`}
+            language="bash"
+          />
+          <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
+            Creates a session directory, spawns all services, prefixes output with <code>[name]</code>, and writes individual + combined log files.
+          </p>
+
+          <h3><code>agent-tail wrap</code></h3>
+          <p>Wrap a single command and write its output to a named log file in the current session:</p>
+          <CodeBlock code="agent-tail wrap server -- npm run dev" language="bash" />
+          <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
+            Useful when you want to add a service to an existing session created by <code>agent-tail init</code> or a framework plugin.
+          </p>
+
+          <h3><code>agent-tail init</code></h3>
+          <p>Create a new log session directory without running any commands:</p>
+          <CodeBlock code="agent-tail init" language="bash" />
+          <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
+            Sets up the session directory and <code>latest</code> symlink. Useful when other tools (like framework plugins) will write to the session.
+          </p>
+        </section>
+
+        <section>
           <h2 id="cli-options">CLI options</h2>
-          <p>Options for <code>agent-tail run</code>, <code>agent-tail wrap</code>, and <code>agent-tail init</code>:</p>
+          <p>Shared options for <code>agent-tail run</code>, <code>agent-tail wrap</code>, and <code>agent-tail init</code>:</p>
           <div className="props-list">
             <div className="prop-item">
               <div className="prop-header">
@@ -128,6 +164,12 @@ export default function APIReferencePage() {
                 <code className="prop-name">--no-combined</code>
               </div>
               <p className="prop-desc">Don&apos;t write to combined.log</p>
+            </div>
+            <div className="prop-item">
+              <div className="prop-header">
+                <code className="prop-name">--exclude &lt;pattern&gt;</code>
+              </div>
+              <p className="prop-desc">Exclude lines matching pattern (repeatable). Plain strings are substring matches; strings starting with <code>/</code> are parsed as regex.</p>
             </div>
           </div>
         </section>
