@@ -1,6 +1,6 @@
 # &>> agent-tail
 
-Pipe dev server and browser console logs to log files on your machine that AI coding agents like Claude Code, Amp, and Pi can read and grep.
+Pipe dev server and browser console logs to log files on your machine that AI coding agents like Claude Code, Amp, and Cursor can read and grep.
 
 [Documentation](https://agent-tail.vercel.app/)
 
@@ -14,29 +14,22 @@ npx agent-tail run 'server: echo "Hello world!"' && cat tmp/logs/latest/server.l
 
 That's the full cycle: run a command, output is captured to a log file, read the file.
 
+## Table of Contents
+
+- [Server-side and client-side logs](#server-side-and-client-side-logs)
+- [Installation](#installation) — [CLI](#cli-server-side-logs) | [Vite](#vite-plugin-browser-logs) | [Next.js](#nextjs-plugin-browser-logs)
+- [Packages](#packages)
+- [Features](#features) — [Log filtering](#log-filtering) | [Multi-server](#multi-server-log-aggregation) | [Searching and tailing](#searching-and-tailing-logs) | [Captured events](#captured-browser-events) | [Session management](#session-management)
+- [How agents use it](#how-agents-use-it)
+- [Agent Setup](#agent-setup)
+- [Configuration](#configuration) — [Vite](#vite-1) | [Next.js](#nextjs-1) | [CLI Options](#cli-options)
+- [CLI Commands](#cli-commands)
+- [Why Files, Not MCP](#why-files-not-mcp)
+- [FAQ](#faq)
+
 ## Server-side and client-side logs
 
-agent-tail captures two kinds of logs: **server-side** output (stdout/stderr from your dev commands) and **client-side** output (browser `console.*` calls). The CLI handles server logs and works with any stack. Framework plugins for Vite and Next.js handle browser logs.
-
-### CLI — server-side logs
-
-`agent-tail run` wraps any command (or commands!) and pipes their stdout/stderr to log files. Works with any dev server, any language, zero config.
-
-```bash
-agent-tail run 'fe: npm run dev' 'api: uv run server'
-```
-
-Each service gets its own log file (`api.log`, `worker.log`) plus a `combined.log` with all output interleaved. See [CLI: `agent-tail`](#cli-agent-tail) for full usage.
-
-### Framework plugins — browser logs
-
-The Vite and Next.js plugins inject a small script into your HTML that intercepts `console.log`, `console.warn`, `console.error`, unhandled errors, and unhandled promise rejections. Captured logs are sent to the dev server and written to `browser.log`.
-
-See [Quick Start](#quick-start) below for setup.
-
-### Use both together
-
-The CLI and framework plugins write to the same session directory. Run your Vite dev server through `agent-tail run` and you get server output *and* browser console logs in one place:
+agent-tail captures two kinds of logs: **server-side** output (stdout/stderr from your dev commands) and **client-side** output (browser `console.*` calls). The CLI handles server logs and works with any stack. Framework plugins for Vite and Next.js handle browser logs. Use them together to get everything in one place.
 
 ```bash
 agent-tail run 'fe: npm run dev' 'api: uv run server'
@@ -46,38 +39,37 @@ agent-tail run 'fe: npm run dev' 'api: uv run server'
 # tmp/logs/latest/combined.log  — everything interleaved
 ```
 
-## Table of Contents
+## Installation
 
-- [Server-side and client-side logs](#server-side-and-client-side-logs) — [CLI](#cli--server-side-logs) | [Framework plugins](#framework-plugins--browser-logs)
-- [Packages](#packages)
-- [Quick Start](#quick-start) — [Vite](#vite) | [Next.js](#nextjs)
-- [How It Works](#how-it-works)
-- [Configuration](#configuration) — [.gitignore](#gitignore) | [Log Format](#log-format) | [Captured Events](#captured-events)
-- [CLI: `agent-tail`](#cli-agent-tail) — [run](#agent-tail-run) | [init + wrap](#agent-tail-init--agent-tail-wrap)
-- [Multi-Server Log Aggregation](#multi-server-log-aggregation)
-- [Searching and Tailing Logs](#searching-and-tailing-logs)
-- [Agent Setup](#agent-setup)
-- [Why Files, Not MCP](#why-files-not-mcp)
-- [FAQ](#faq)
+### CLI (server-side logs)
 
-## Packages
-
-Install the umbrella package to get everything:
+The CLI wraps any command and captures its stdout/stderr to log files. No plugins, no config — works with any language or framework.
 
 ```bash
 npm install -D agent-tail
 ```
 
-| Package | Description |
-|---------|-------------|
-| [`agent-tail`](./packages/agent-tail) | Umbrella package — includes CLI, Vite plugin, and Next.js plugin |
-| [`agent-tail-core`](./packages/core) | CLI and shared core (types, formatting, log management) |
-| [`vite-plugin-agent-tail`](./packages/vite-plugin) | Vite plugin — browser console capture |
-| [`next-plugin-agent-tail`](./packages/next-plugin) | Next.js plugin — browser console capture |
+Wrap one or more commands with unified logging in your `package.json`:
 
-## Quick Start
+```json
+{
+    "scripts": {
+        "dev": "agent-tail run 'fe: npm run dev' 'api: uv run server' 'worker: uv run worker'"
+    }
+}
+```
 
-### Vite
+Creates a session directory, spawns all services, prefixes output with `[name]`, and writes individual + combined log files.
+
+It works with any command, not just Node — Python, Go, Ruby, whatever you run in a terminal:
+
+```bash
+npx agent-tail run 'api: uv run fastapi dev'
+```
+
+### Vite plugin (browser logs)
+
+The Vite plugin captures browser `console.*` calls by injecting a small script into your page during development. Logs are written to `browser.log` in the same session directory the CLI uses.
 
 ```bash
 npm install -D agent-tail
@@ -99,11 +91,15 @@ Then in another terminal:
 tail -f tmp/logs/latest/browser.log
 ```
 
-### Next.js
+### Next.js plugin (browser logs)
+
+The Next.js plugin does the same thing — captures browser `console.*` output — but requires a bit more wiring because of how Next.js handles config, layouts, and API routes.
 
 ```bash
 npm install -D agent-tail
 ```
+
+**1. Wrap your Next.js config**
 
 ```ts
 // next.config.ts
@@ -113,6 +109,8 @@ export default withAgentTail({
     // your Next.js config
 })
 ```
+
+**2. Add the script to your layout**
 
 ```tsx
 // app/layout.tsx
@@ -130,45 +128,253 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
+**3. Create the API route**
+
 ```ts
 // app/api/__browser-logs/route.ts
 export { POST } from "agent-tail/next/handler"
 ```
 
-## How It Works
+### .gitignore
 
-### CLI
+Add your log directory to `.gitignore`:
 
-1. `agent-tail run` spawns your services and creates a timestamped session directory (e.g. `tmp/logs/2024-01-15T10-30-00-123Z/`)
-2. A `latest` symlink points to the newest session
-3. Each service's stdout/stderr is written to a named log file (`api.log`, `worker.log`, etc.) and a `combined.log`
-4. Old sessions beyond the limit are automatically pruned (default: keep 10)
+```
+# .gitignore
+tmp/
+```
 
-### Framework plugins (Vite / Next.js)
+agent-tail warns on startup if the log directory isn't gitignored. Disable with `warnOnMissingGitignore: false`.
 
-1. On dev server start, a timestamped session directory is created (reused if one already exists from the CLI)
-2. A small script is injected into your HTML that intercepts console methods
-3. Captured logs are batched and sent to the dev server via `sendBeacon`
-4. The server writes formatted log lines to `browser.log` in the session directory
+## Packages
+
+Install the umbrella package to get everything:
+
+```bash
+npm install -D agent-tail
+```
+
+| Package | Description |
+|---------|-------------|
+| [`agent-tail`](./packages/agent-tail) | Umbrella package — includes CLI, Vite plugin, and Next.js plugin |
+| [`agent-tail-core`](./packages/core) | CLI and shared core (types, formatting, log management) |
+| [`vite-plugin-agent-tail`](./packages/vite-plugin) | Vite plugin — browser console capture |
+| [`next-plugin-agent-tail`](./packages/next-plugin) | Next.js plugin — browser console capture |
+
+## Features
+
+### Readable, greppable logs
+
+Logs are plain text files with a consistent format. Timestamps, levels, source locations, and stack traces are all there — easy for you to scan and easy for an AI to parse.
+
+```
+[10:30:00.123] [LOG    ] User clicked button
+[10:30:00.456] [WARN   ] Deprecated API call
+[10:30:01.789] [ERROR  ] Failed to fetch data (http://localhost:5173/src/api.ts:42:10)
+    Error: Network error
+        at fetchData (http://localhost:5173/src/api.ts:42:10)
+        at handleClick (http://localhost:5173/src/app.ts:15:5)
+```
+
+Levels are padded to 7 characters for alignment. Stack traces are indented. Source URLs are included for errors.
+
+### Log filtering
+
+Not every log line is useful — HMR updates, noisy debug output, and framework internals add clutter that wastes AI context. The `excludes` option lets you filter them out before they hit disk.
+
+```ts
+// vite.config.ts
+agentTail({
+    excludes: [
+        "[HMR]",           // substring match
+        "Download the React DevTools",
+        "/^\\[vite\\]/",     // regex match
+    ],
+})
+```
+
+The CLI supports it too, with repeatable `--exclude` flags:
+
+```bash
+agent-tail run --exclude "[HMR]" --exclude "/^DEBUG/" 'fe: npm run dev'
+```
+
+Plain strings are substring matches. Patterns starting with `/` are parsed as regex (e.g. `/^HMR/i`).
+
+### Multi-server log aggregation
+
+Most projects run more than one process — a frontend, an API, maybe a worker. agent-tail can aggregate all of them into one session directory.
+
+**1. Use `agent-tail run` (recommended)**
+
+Run everything from one command. All output goes to the same session automatically.
+
+**2. Wrap services independently**
+
+Run each service in its own terminal. The `wrap` command detects the existing session:
+
+```bash
+# Terminal 1: Start the frontend (creates the session)
+npm run dev
+
+# Terminal 2: Wrap the API server (reuses the session)
+npx agent-tail wrap api -- uv run fastapi-server
+
+# Terminal 3: Tail everything
+tail -f tmp/logs/latest/*.log
+```
+
+**3. Direct file writes (no CLI needed)**
+
+Point your server's logging at the `latest` symlink. Works with any language:
 
 <details>
-<summary><strong>Where are files written?</strong></summary>
+<summary>Python, Node.js, Ruby, Go examples</summary>
 
-```
-your-project/
-├── tmp/
-│   └── logs/
-│       ├── 2024-01-15T10-30-00-123Z/
-│       │   └── browser.log
-│       ├── 2024-01-15T11-45-00-456Z/
-│       │   └── browser.log
-│       └── latest -> 2024-01-15T11-45-00-456Z/
-└── vite.config.ts
+#### Python (FastAPI, Django, Flask)
+
+```python
+import os
+import logging
+
+log_dir = os.path.join(os.getcwd(), "tmp", "logs", "latest")
+os.makedirs(log_dir, exist_ok=True)
+
+handler = logging.FileHandler(os.path.join(log_dir, "api.log"))
+handler.setFormatter(logging.Formatter(
+    "[%(asctime)s] [%(levelname)-7s] %(message)s",
+    datefmt="%H:%M:%S"
+))
+
+logger = logging.getLogger("api")
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 ```
 
-Each dev server start creates a new timestamped directory. The `latest` symlink always points to the most recent session, so `tmp/logs/latest/browser.log` is always the current log file. Old sessions are pruned automatically.
+#### Node.js (Express, Fastify, etc.)
+
+```ts
+import fs from "node:fs"
+import path from "node:path"
+
+const log_dir = path.resolve("tmp/logs/latest")
+fs.mkdirSync(log_dir, { recursive: true })
+
+const log_stream = fs.createWriteStream(
+    path.join(log_dir, "server.log"),
+    { flags: "a" }
+)
+
+function log(level: string, ...args: unknown[]) {
+    const time = new Date().toTimeString().slice(0, 12)
+    const msg = args.map(a => typeof a === "string" ? a : JSON.stringify(a)).join(" ")
+    log_stream.write(`[${time}] [${level.toUpperCase().padEnd(7)}] ${msg}\n`)
+}
+```
+
+#### Ruby (Rails, Sinatra)
+
+```ruby
+log_dir = File.join(Dir.pwd, "tmp", "logs", "latest")
+FileUtils.mkdir_p(log_dir)
+
+logger = Logger.new(File.join(log_dir, "rails.log"))
+logger.formatter = proc { |severity, time, _, msg|
+    "[#{time.strftime('%H:%M:%S.%L')}] [#{severity.ljust(7)}] #{msg}\n"
+}
+```
+
+#### Go
+
+```go
+logDir := filepath.Join(".", "tmp", "logs", "latest")
+os.MkdirAll(logDir, 0755)
+
+f, _ := os.OpenFile(filepath.Join(logDir, "server.log"),
+    os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+log.SetOutput(f)
+```
 
 </details>
+
+### Searching and tailing logs
+
+Because logs are plain files, every standard Unix tool works out of the box:
+
+```bash
+# Follow all logs in real time
+tail -f tmp/logs/latest/*.log
+
+# Follow a specific service
+tail -f tmp/logs/latest/browser.log
+
+# Find all errors across every service
+grep -r "ERROR" tmp/logs/latest/
+
+# Case-insensitive search
+grep -ri "failed\|timeout\|exception" tmp/logs/latest/
+
+# Show context around each match
+grep -r -C 5 "ERROR" tmp/logs/latest/
+
+# Only ERROR and WARN lines
+awk '/\[ERROR|\[WARN/' tmp/logs/latest/browser.log
+
+# Count errors per service
+grep -rc "ERROR" tmp/logs/latest/
+
+# Use ripgrep for faster searches
+rg "ERROR|WARN" tmp/logs/latest/
+```
+
+### Captured browser events
+
+The framework plugins capture more than just `console.*` calls:
+
+- **Unhandled errors** (`window.onerror`) — logged as `UNCAUGHT_ERROR` with full stack traces
+- **Unhandled promise rejections** — logged as `UNHANDLED_REJECTION`
+
+These are the errors that silently break your app in the browser. Disable with `captureErrors: false` and `captureRejections: false`.
+
+### Session management
+
+Each `agent-tail run` (or dev server start with a framework plugin) creates a new session — a timestamped directory under `tmp/logs/` that holds all log files for that run. A `latest` symlink always points to the most recent session, so `tmp/logs/latest/` is always the right path to give your agent.
+
+- **Timestamped directories** — e.g. `2024-01-15T10-30-00-123Z/`
+- **Latest symlink** — updated on every new session, always points to the newest one
+- **Auto-pruning** — old sessions beyond the limit are removed (default: keep 10)
+- **Gitignore detection** — warns if your log directory isn't in `.gitignore`
+
+## How agents use it
+
+agent-tail works best with AI tools that have access to your codebase — Claude Code, Cursor, Amp, and others. When your agent reads the log files, it gets:
+
+- Timestamped errors with source locations
+- Stack traces to trace the call path
+- Server and browser output side by side
+- The exact error message — no paraphrasing, no guessing
+
+**Without agent-tail**, you copy-paste from browser devtools, describe the error in prose ("there's a 500 on the users page"), and hope the agent guesses right. Or you install an MCP browser tool that requires a running connection, can't be piped through `grep`, and gives you structured results you can't compose with other tools.
+
+**With agent-tail**, every time you start your dev server, agent-tail creates a new session directory and symlinks `tmp/logs/latest/` to it. The agent runs `grep ERROR tmp/logs/latest/` and gets the exact stack trace, source file, and line number. Plain files — no connection state, no tool registration, no token overhead. Agents already know how to read files.
+
+## Agent Setup
+
+Add a section to your project's agent instructions file (`CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, or equivalent):
+
+```markdown
+## Dev Logs
+
+All dev server output is captured to `tmp/logs/`. The latest session
+is symlinked at `tmp/logs/latest/`.
+
+When debugging, check logs before guessing about runtime behavior, ie:
+
+    grep -ri "error\|warn" tmp/logs/latest/
+    tail -50 tmp/logs/latest/browser.log
+```
+
+That's all. The agent now knows where runtime truth lives and can read logs instead of asking you to describe what went wrong.
 
 ## Configuration
 
@@ -251,109 +457,6 @@ export { POST } from "agent-tail/next/handler"
 
 </details>
 
-### .gitignore
-
-Add your log directory to `.gitignore` to keep logs out of version control:
-
-```
-# .gitignore
-tmp/
-```
-
-The plugin warns on startup if the log directory isn't gitignored. Disable with `warnOnMissingGitignore: false`.
-
-### Log Format
-
-```
-[HH:MM:SS.mmm] [LEVEL  ] message (url)
-    stack trace line 1
-    stack trace line 2
-```
-
-Example:
-
-```
-[10:30:00.123] [LOG    ] User clicked button
-[10:30:00.456] [WARN   ] Deprecated API call
-[10:30:01.789] [ERROR  ] Failed to fetch data (http://localhost:5173/src/api.ts:42:10)
-    Error: Network error
-        at fetchData (http://localhost:5173/src/api.ts:42:10)
-        at handleClick (http://localhost:5173/src/app.ts:15:5)
-```
-
-### Captured Events
-
-Beyond console methods, the plugin captures:
-
-- **Unhandled errors** (`window.onerror`) — logged as `UNCAUGHT_ERROR`
-- **Unhandled promise rejections** — logged as `UNHANDLED_REJECTION`
-
-Disable with `captureErrors: false` and `captureRejections: false`.
-
-## CLI: `agent-tail`
-
-The `agent-tail` CLI wraps any dev server command (or commands!) and pipes their output into the unified log session.
-
-```bash
-npm install -D agent-tail
-```
-
-### `agent-tail run`
-
-This is the primary entry point. It creates a fresh session, spawns all your services, and handles everything:
-
-```json
-{
-    "scripts": {
-        "dev": "agent-tail run 'fe: npm run dev' 'api: uv run server' 'worker: uv run worker'"
-    }
-}
-```
-
-Then `npm run dev` starts everything with unified logging. Each service argument is `"name: command"`.
-
-This:
-- Creates a new session directory
-- Spawns all services concurrently
-- Prefixes each line with `[name]` in the terminal (color-coded)
-- Writes individual log files (`fe.log`, `api.log`, `worker.log`)
-- Writes a `combined.log` with all output interleaved
-
-Works with a single service too — no need to reach for `wrap`:
-
-```bash
-agent-tail run 'api: uv run server'
-```
-
-### `agent-tail init` + `agent-tail wrap`
-
-If you need more control over when the session is created or want to start services independently (e.g. in separate terminal tabs, from different scripts, or at different times), you can split session creation and command wrapping into two steps.
-
-`init` creates a new session directory and prints the path. `wrap` runs a single command and pipes its output into the existing session. Unlike `run`, `wrap` does not create a new session — it reuses whatever session the `latest` symlink points to.
-
-```bash
-# Terminal 1: Create the session
-agent-tail init
-
-# Terminal 2: Wrap the API server (joins the session)
-agent-tail wrap api -- uv run fastapi-server
-
-# Terminal 3: Wrap the worker (joins the same session)
-agent-tail wrap worker -- uv run celery-worker
-```
-
-This is also useful when a framework plugin (Vite or Next.js) already created the session — `wrap` detects it and writes to the same directory:
-
-```bash
-# Terminal 1: Vite creates the session on startup
-npm run dev
-
-# Terminal 2: Wrap additional services into the same session
-agent-tail wrap api -- uv run fastapi-server
-```
-
-If no session exists when `wrap` is called, it creates one automatically.
-
 ### CLI Options
 
 ```
@@ -363,189 +466,37 @@ If no session exists when `wrap` is called, it creates one automatically.
 --exclude <pattern>   Exclude lines matching pattern (repeatable, /regex/ or substring)
 ```
 
-## Multi-Server Log Aggregation
+## CLI Commands
 
-There are three ways to unify logs from multiple servers:
+### `agent-tail run`
 
-### Use `agent-tail run` (recommended)
-
-Run everything from one command. Add it to `package.json` and forget about it:
-
-```json
-{
-    "scripts": {
-        "dev": "agent-tail run 'fe: npm run dev' 'api: uv run server' 'worker: python -m celery worker'"
-    }
-}
-```
-
-All output goes to the same session automatically. The Vite plugin still captures browser console logs via its injected script.
-
-### Use `init` + `wrap` for independent services
-
-If you prefer running each service in its own terminal (see [`init` + `wrap`](#agent-tail-init--agent-tail-wrap) for details):
+Spawn one or more commands with unified logging. Each argument is a `name: command` pair:
 
 ```bash
-# Terminal 1: Start the frontend (creates the session)
-npm run dev
-
-# Terminal 2: Wrap the API server (joins the session)
-agent-tail wrap api -- npm run dev:api
-
-# Terminal 3: Wrap the worker (joins the same session)
-agent-tail wrap worker -- uv run celery-worker
-
-# Terminal 4: Tail everything
-tail -f tmp/logs/latest/*.log
+agent-tail run 'fe: npm run dev' 'api: uv run server' 'worker: uv run worker'
 ```
 
-### Direct file writes (no CLI needed)
+Creates a session directory, spawns all services, prefixes output with `[name]`, and writes individual + combined log files.
 
-If your server has its own logging configuration, point it at the `latest` symlink:
+### `agent-tail wrap`
 
-#### Python (FastAPI, Django, Flask)
-
-```python
-import os
-import logging
-
-log_dir = os.path.join(os.getcwd(), "tmp", "logs", "latest")
-os.makedirs(log_dir, exist_ok=True)
-
-handler = logging.FileHandler(os.path.join(log_dir, "api.log"))
-handler.setFormatter(logging.Formatter(
-    "[%(asctime)s] [%(levelname)-7s] %(message)s",
-    datefmt="%H:%M:%S"
-))
-
-logger = logging.getLogger("api")
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
-```
-
-#### Node.js (Express, Fastify, etc.)
-
-```ts
-import fs from "node:fs"
-import path from "node:path"
-
-const log_dir = path.resolve("tmp/logs/latest")
-fs.mkdirSync(log_dir, { recursive: true })
-
-const log_stream = fs.createWriteStream(
-    path.join(log_dir, "server.log"),
-    { flags: "a" }
-)
-
-function log(level: string, ...args: unknown[]) {
-    const time = new Date().toTimeString().slice(0, 12)
-    const msg = args.map(a => typeof a === "string" ? a : JSON.stringify(a)).join(" ")
-    log_stream.write(`[${time}] [${level.toUpperCase().padEnd(7)}] ${msg}\n`)
-}
-```
-
-#### Ruby (Rails, Sinatra)
-
-```ruby
-log_dir = File.join(Dir.pwd, "tmp", "logs", "latest")
-FileUtils.mkdir_p(log_dir)
-
-logger = Logger.new(File.join(log_dir, "rails.log"))
-logger.formatter = proc { |severity, time, _, msg|
-    "[#{time.strftime('%H:%M:%S.%L')}] [#{severity.ljust(7)}] #{msg}\n"
-}
-```
-
-#### Go
-
-```go
-logDir := filepath.Join(".", "tmp", "logs", "latest")
-os.MkdirAll(logDir, 0755)
-
-f, _ := os.OpenFile(filepath.Join(logDir, "server.log"),
-    os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-log.SetOutput(f)
-```
-
-## Searching and Tailing Logs
-
-All commands below should be run from your **project root** (where `tmp/logs/` lives).
+Wrap a single command and write its output to a named log file in the current session:
 
 ```bash
-# Follow all logs in real time
-tail -f tmp/logs/latest/*.log
-
-# Follow a specific service
-tail -f tmp/logs/latest/browser.log
-
-# Colored split view (install: brew install multitail)
-multitail tmp/logs/latest/browser.log tmp/logs/latest/api.log
+agent-tail wrap server -- npm run dev
 ```
 
-Search across all logs in the current session:
+Useful when you want to add a service to an existing session created by `agent-tail init` or a framework plugin.
+
+### `agent-tail init`
+
+Create a new log session directory without running any commands:
 
 ```bash
-# Find all errors across every service
-grep -r "ERROR" tmp/logs/latest/
-
-# Case-insensitive search
-grep -ri "failed\|timeout\|exception" tmp/logs/latest/
-
-# Show 5 lines of context around each match
-grep -r -C 5 "ERROR" tmp/logs/latest/
-
-# Search a specific service
-grep "TypeError" tmp/logs/latest/browser.log
+agent-tail init
 ```
 
-Filter and extract with `awk`:
-
-```bash
-# Only ERROR and WARN lines from browser logs
-awk '/\[ERROR|\[WARN/' tmp/logs/latest/browser.log
-
-# Everything after a specific timestamp
-awk '/\[10:30:00/,0' tmp/logs/latest/browser.log
-```
-
-Count and summarize:
-
-```bash
-# Count errors per service
-grep -rc "ERROR" tmp/logs/latest/
-
-# Most frequent error messages
-grep "ERROR" tmp/logs/latest/browser.log | sort | uniq -c | sort -rn | head
-```
-
-Use `rg` (ripgrep) for faster searches in larger sessions:
-
-```bash
-rg "ERROR|WARN" tmp/logs/latest/
-rg "fetch.*failed" tmp/logs/latest/browser.log -C 3
-```
-
-## Agent Setup
-
-To get the most out of agent-tail, tell your AI agent where the logs are. Add a snippet like this to your project's agent instructions file (Claude Code uses `CLAUDE.md`, Amp uses `AGENTS.md`, Cursor uses `.cursorrules`, Pi uses `SKILLS.md`):
-
-```markdown
-## Dev Logs
-
-All dev server output is piped to `tmp/logs/`. The latest session is
-symlinked at `tmp/logs/latest/`. Each service gets its own log file
-(e.g. `fe.log`, `api.log`) plus a `combined.log` with all output
-interleaved. Browser console output (console.log, console.warn,
-console.error, unhandled errors, unhandled promise rejections) is
-automatically captured via a framework plugin during development.
-
-When debugging, always check recent logs before guessing:
-
-    grep -ri "error\|warn" tmp/logs/latest/
-    tail -50 tmp/logs/latest/combined.log
-```
-
-This gives agents like Claude Code, Amp, and Pi passive context about where runtime truth lives, so they read logs instead of speculating.
+Sets up the session directory and `latest` symlink. Useful when other tools (like framework plugins) will write to the session.
 
 ## Why Files, Not MCP
 
@@ -567,25 +518,11 @@ That said, MCP has real strengths in other contexts. It provides structured, que
 
 ## FAQ
 
-### Which package should I install?
+See the [full FAQ](https://agent-tail.vercel.app/faq) on the docs site.
 
-Install `agent-tail` — it's the umbrella package that includes the CLI, Vite plugin, and Next.js plugin. One install, all features:
+**Which package should I install?** Install `agent-tail` — it's the umbrella package that includes the CLI, Vite plugin, and Next.js plugin. One install, all features.
 
-```bash
-npm install -D agent-tail
-```
-
-### Can I install the smaller packages separately?
-
-Yes. If you only need one piece, you can install it directly:
-
-| Package | What it includes |
-|---------|-----------------|
-| `agent-tail-core` | CLI only (`agent-tail run`, `agent-tail wrap`, `agent-tail init`) |
-| `vite-plugin-agent-tail` | Vite plugin only (import from `"vite-plugin-agent-tail"`) |
-| `next-plugin-agent-tail` | Next.js plugin only (import from `"next-plugin-agent-tail"`, `"next-plugin-agent-tail/script"`, `"next-plugin-agent-tail/handler"`) |
-
-The umbrella `agent-tail` package re-exports everything from these packages, so you only need one install.
+**Can I install the smaller packages separately?** Yes. `agent-tail-core` for CLI only, `vite-plugin-agent-tail` for Vite only, `next-plugin-agent-tail` for Next.js only. The umbrella re-exports everything.
 
 ## License
 
