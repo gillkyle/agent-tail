@@ -220,6 +220,10 @@ button {
     }
   }
 
+  .nav-link-external {
+    gap: 0.25rem;
+  }
+
   .nav-section {
     font-size: 0.625rem;
     font-variation-settings: 'wght' 500;
@@ -650,6 +654,40 @@ button {
     &.active {
       color: rgba(0, 0, 0, 0.8);
       font-variation-settings: 'wght' 550;
+    }
+  }
+
+  .mobile-nav-github {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .mobile-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .mobile-github-link {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.45);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+
+    &:hover {
+      color: rgba(0, 0, 0, 0.7);
+      border-color: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.03);
     }
   }
 }
