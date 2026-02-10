@@ -77,5 +77,8 @@
         "next": "^15.0.0",
         "react": "^19.0.0",
         "@types/react": "^19.0.0"
+    },
+    "bin": {
+        "agent-tail": "node_modules/agent-tail-core/dist/cli.mjs"
     }
 }
