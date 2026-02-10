@@ -1,0 +1,8 @@
+{
+    "name": "api",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "agent-tail wrap api --log-dir ../../tmp/logs -- tsx watch server.ts"
+    }
+}

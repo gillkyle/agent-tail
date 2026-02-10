@@ -135,7 +135,7 @@ export function cmd_wrap(
 
     const child = spawn(command.join(" "), {
         stdio: ["inherit", "pipe", "pipe"],
-        env: { ...process.env },
+        env: { ...process.env, [SESSION_ENV_VAR]: session_dir },
         shell: true,
     })
 

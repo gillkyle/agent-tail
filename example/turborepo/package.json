@@ -1,0 +1,13 @@
+{
+    "name": "example-turborepo",
+    "private": true,
+    "packageManager": "pnpm@10.11.0",
+    "scripts": {
+        "dev": "agent-tail init && turbo dev"
+    },
+    "devDependencies": {
+        "agent-tail-core": "file:../../packages/core",
+        "turbo": "^2.0.0",
+        "tsx": "^4.0.0"
+    }
+}

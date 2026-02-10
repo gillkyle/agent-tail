@@ -46,6 +46,7 @@ export function SideNav() {
 				{ id: "log-filtering", text: "Log Filtering" },
 				{ id: "muting-services", text: "Muting Services" },
 				{ id: "multi-server", text: "Multi-Server" },
+				{ id: "monorepos", text: "Monorepos" },
 				{ id: "searching-and-tailing", text: "Searching & Tailing" },
 				{ id: "captured-events", text: "Captured Events" },
 				{ id: "session-management", text: "Session Management" },

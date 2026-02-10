@@ -133,6 +133,37 @@ const log_stream = fs.createWriteStream(
         </section>
 
         <section>
+          <h2 id="monorepos">Monorepos &amp; package runners</h2>
+          <p>
+            If you use Turborepo, Nx, Lerna, or any other monorepo runner, you can use <code>agent-tail init</code> to create a shared session at the monorepo root, then let the runner start each package with <code>agent-tail wrap</code>.
+          </p>
+          <p>
+            The pattern is: <code>agent-tail init</code> creates the session directory and <code>latest</code> symlink once, then your runner (Turborepo, Nx, etc.) starts each app in parallel. Each app&apos;s dev script uses <code>agent-tail wrap</code> with <code>--log-dir</code> pointing back to the root&apos;s log directory.
+          </p>
+          <CodeBlock
+            code={`// Root package.json
+{
+    "scripts": {
+        "dev": "agent-tail init && turbo dev"
+    }
+}`}
+            language="json"
+          />
+          <CodeBlock
+            code={`// apps/web/package.json
+{
+    "scripts": {
+        "dev": "agent-tail wrap web --log-dir ../../tmp/logs -- vite"
+    }
+}`}
+            language="json"
+          />
+          <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
+            The <code>--log-dir</code> path is relative to each package&apos;s directory. Adjust the relative path based on your monorepo depth. This pattern works with any runner that starts multiple packages in parallel.
+          </p>
+        </section>
+
+        <section>
           <h2 id="searching-and-tailing">Searching and tailing logs</h2>
           <p>
             Because logs are plain files, every standard Unix tool works out of the box. Here are the most useful patterns:

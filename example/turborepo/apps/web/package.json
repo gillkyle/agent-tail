@@ -1,0 +1,11 @@
+{
+    "name": "web",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "agent-tail wrap web --log-dir ../../tmp/logs -- vite"
+    },
+    "devDependencies": {
+        "vite": "^6.0.0"
+    }
+}

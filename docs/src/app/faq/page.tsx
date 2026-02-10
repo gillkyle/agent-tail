@@ -72,6 +72,12 @@ const faqCategories: FAQCategory[] = [
 				answer:
 					"Yes! This is a core feature. Use <code>agent-tail run</code> to start everything from one command, or use <code>agent-tail wrap</code> to add services to an existing session. Each service gets its own log file, plus a <code>combined.log</code> with everything interleaved.",
 			},
+			{
+				question:
+					"How do I use agent-tail with Turborepo, Nx, or other monorepo runners?",
+				answer:
+					'Use <code>agent-tail init</code> to create a shared session, then let your runner start each package. Each package\'s dev script uses <code>agent-tail wrap</code> with <code>--log-dir</code> pointing back to the root\'s log directory. Example: root runs <code>agent-tail init && turbo dev</code>, each app runs <code>agent-tail wrap web --log-dir ../../tmp/logs -- vite</code>. The <code>--log-dir</code> path must be relative to each package\'s directory.',
+			},
 		],
 	},
 	{

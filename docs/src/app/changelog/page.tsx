@@ -26,6 +26,15 @@ const badgeLabels: Record<ChangeType, string> = {
 
 const releases: Release[] = [
   {
+    version: "0.3.4",
+    date: "February 2026",
+    changes: [
+      { type: "added", text: <>Turborepo multi-service example at <code>example/turborepo/</code> &mdash; demonstrates <code>agent-tail init</code> + <code>agent-tail wrap</code> per package with shared session</> },
+      { type: "fixed", text: <><code>agent-tail wrap</code> now passes <code>AGENT_TAIL_SESSION</code> to child processes so framework plugins (Vite, Next.js) join the existing session instead of creating a new one</> },
+      { type: "added", text: <>Monorepo &amp; package runner documentation &mdash; new sections in README, features page, and FAQ covering the <code>agent-tail init &amp;&amp; turbo dev</code> pattern</> },
+    ],
+  },
+  {
     version: "0.3.3",
     date: "February 2026",
     changes: [

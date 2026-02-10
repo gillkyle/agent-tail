@@ -19,7 +19,7 @@ That's the full cycle: run a command, output is captured to a log file, read the
 - [Server-side and client-side logs](#server-side-and-client-side-logs)
 - [Installation](#installation) — [CLI](#cli-server-side-logs) | [Vite](#vite-plugin-browser-logs) | [Next.js](#nextjs-plugin-browser-logs)
 - [Packages](#packages)
-- [Features](#features) — [Log filtering](#log-filtering) | [Muting services](#muting-services) | [Multi-server](#multi-server-log-aggregation) | [Searching and tailing](#searching-and-tailing-logs) | [Captured events](#captured-browser-events) | [Session management](#session-management)
+- [Features](#features) — [Log filtering](#log-filtering) | [Muting services](#muting-services) | [Multi-server](#multi-server-log-aggregation) | [Monorepos](#monorepos--package-runners) | [Searching and tailing](#searching-and-tailing-logs) | [Captured events](#captured-browser-events) | [Session management](#session-management)
 - [How agents use it](#how-agents-use-it)
 - [Agent Setup](#agent-setup)
 - [Configuration](#configuration) — [Vite](#vite-1) | [Next.js](#nextjs-1) | [CLI Options](#cli-options)
@@ -308,6 +308,34 @@ log.SetOutput(f)
 ```
 
 </details>
+
+### Monorepos & package runners
+
+If you use Turborepo, Nx, Lerna, or any other monorepo runner, you can use `agent-tail init` to create a shared session at the monorepo root, then let the runner start each package with `agent-tail wrap`:
+
+```json
+// Root package.json
+{
+    "scripts": {
+        "dev": "agent-tail init && turbo dev"
+    }
+}
+```
+
+Each package's `dev` script uses `agent-tail wrap` with `--log-dir` pointing back to the root log directory:
+
+```json
+// apps/web/package.json
+{
+    "scripts": {
+        "dev": "agent-tail wrap web --log-dir ../../tmp/logs -- vite"
+    }
+}
+```
+
+`agent-tail init` creates the session and `latest` symlink once, then each `agent-tail wrap` discovers the existing session via the symlink. All services write to the same session directory — `web.log`, `api.log`, `worker.log`, `combined.log`, and `browser.log` (if using a framework plugin) all end up in `tmp/logs/latest/`.
+
+The `--log-dir` path is relative to each package, so adjust based on your monorepo depth. This pattern works with any runner that starts multiple packages in parallel.
 
 ### Searching and tailing logs
 

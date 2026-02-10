@@ -1,0 +1,8 @@
+{
+    "name": "worker",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "agent-tail wrap worker --log-dir ../../tmp/logs -- tsx watch index.ts"
+    }
+}
