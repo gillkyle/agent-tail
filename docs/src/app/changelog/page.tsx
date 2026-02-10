@@ -26,6 +26,13 @@ const badgeLabels: Record<ChangeType, string> = {
 
 const releases: Release[] = [
   {
+    version: "0.3.5",
+    date: "February 2026",
+    changes: [
+      { type: "fixed", text: <>Added missing <code>bin</code> field to the <code>agent-tail</code> umbrella package so the CLI works when installed via the umbrella package</> },
+    ],
+  },
+  {
     version: "0.3.4",
     date: "February 2026",
     changes: [
