@@ -26,6 +26,13 @@ const badgeLabels: Record<ChangeType, string> = {
 
 const releases: Release[] = [
   {
+    version: "0.3.6",
+    date: "February 2026",
+    changes: [
+      { type: "fixed", text: <>Fixed <code>npx agent-tail</code> failing with &ldquo;could not determine executable&rdquo; &mdash; the umbrella package now bundles its own CLI entry point instead of referencing a <code>node_modules</code> path that isn&apos;t included in the published tarball</> },
+    ],
+  },
+  {
     version: "0.3.5",
     date: "February 2026",
     changes: [

@@ -7,6 +7,7 @@ export default defineConfig({
         "src/next.ts",
         "src/handler.ts",
         "src/script.tsx",
+        "src/cli.ts",
     ],
     format: ["esm"],
     dts: true,
