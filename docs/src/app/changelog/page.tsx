@@ -26,6 +26,14 @@ const badgeLabels: Record<ChangeType, string> = {
 
 const releases: Release[] = [
   {
+    version: "0.3.9",
+    date: "March 2026",
+    changes: [
+      { type: "fixed", text: <>Changed default endpoint from <code>/__browser-logs</code> to <code>/api/browser-logs</code> &mdash; Next.js treats underscore-prefixed folders as private and excludes them from routing</> },
+      { type: "fixed", text: <><code>AgentTailScript</code> now reads <code>AGENT_TAIL_ENDPOINT</code> from the environment so it stays in sync with <code>withAgentTail</code> without requiring the endpoint in two places</> },
+    ],
+  },
+  {
     version: "0.3.8",
     date: "March 2026",
     changes: [

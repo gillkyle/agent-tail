@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 ```ts
-// app/api/__browser-logs/route.ts
+// app/api/browser-logs/route.ts
 export { POST } from "agent-tail/next/handler"
 ```
 

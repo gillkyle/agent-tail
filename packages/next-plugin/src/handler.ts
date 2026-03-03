@@ -5,7 +5,7 @@ import { format_log_line, should_exclude } from "agent-tail-core"
 /**
  * Next.js App Router API route handler.
  *
- * Usage in app/api/__browser-logs/route.ts:
+ * Usage in app/api/browser-logs/route.ts:
  *   export { POST } from "next-plugin-browser-logs/handler"
  */
 export async function POST(request: Request): Promise<Response> {
@@ -31,7 +31,7 @@ export async function POST(request: Request): Promise<Response> {
 /**
  * Pages Router API route handler.
  *
- * Usage in pages/api/__browser-logs.ts:
+ * Usage in pages/api/browser-logs.ts:
  *   export default pages_handler
  */
 export function pages_handler(

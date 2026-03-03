@@ -5,7 +5,7 @@ export interface BrowserLogsOptions {
     logFileName?: string
     /** Maximum number of log session directories to retain. Default: 10 */
     maxLogSessions?: number
-    /** Server endpoint path for receiving log batches. Default: "/__browser-logs" */
+    /** Server endpoint path for receiving log batches. Default: "/api/browser-logs" */
     endpoint?: string
     /** Client-side flush interval in milliseconds. Default: 500 */
     flushInterval?: number
@@ -39,7 +39,7 @@ export const DEFAULT_OPTIONS: ResolvedOptions = {
     logDir: "tmp/logs",
     logFileName: "browser.log",
     maxLogSessions: 10,
-    endpoint: "/__browser-logs",
+    endpoint: "/api/browser-logs",
     flushInterval: 500,
     maxBatchSize: 50,
     maxSerializeLength: 2000,

@@ -182,7 +182,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					/>
 					<h3>3. Create the API route</h3>
 					<CodeBlock
-						code={`// app/api/__browser-logs/route.ts
+						code={`// app/api/browser-logs/route.ts
 export { POST } from "agent-tail/next/handler"`}
 						language="typescript"
 					/>

@@ -53,7 +53,7 @@ describe("agentTail vite plugin", () => {
         ;(plugin as any).configureServer(mock_server)
 
         expect(middlewares.length).toBe(1)
-        expect(middlewares[0][0]).toBe("/__browser-logs")
+        expect(middlewares[0][0]).toBe("/api/browser-logs")
     })
 
     it("uses custom endpoint", () => {
@@ -241,6 +241,6 @@ describe("agentTail vite plugin", () => {
         expect(result[0].attrs.type).toBe("text/javascript")
         expect(result[0].injectTo).toBe("head-prepend")
         expect(result[0].children).toContain("sendBeacon")
-        expect(result[0].children).toContain("/__browser-logs")
+        expect(result[0].children).toContain("/api/browser-logs")
     })
 })

@@ -44,7 +44,7 @@ export default function APIReferencePage() {
               <div className="prop-header">
                 <code className="prop-name">endpoint</code>
                 <span className="prop-type">string</span>
-                <span className="prop-default">default: &quot;/__browser-logs&quot;</span>
+                <span className="prop-default">default: &quot;/api/browser-logs&quot;</span>
               </div>
               <p className="prop-desc">Server endpoint path for receiving log batches</p>
             </div>

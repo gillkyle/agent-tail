@@ -3,6 +3,7 @@ import fs from "node:fs"
 import path from "node:path"
 import os from "node:os"
 import { withAgentTail } from "../../packages/next-plugin/src/with-browser-logs"
+import { AgentTailScript } from "../../packages/next-plugin/src/script"
 import { SESSION_ENV_VAR } from "../../packages/core/src/log-manager"
 
 function create_temp_dir(): string {
@@ -34,7 +35,7 @@ describe("withAgentTail", () => {
     it("returns a config with env variables set", () => {
         const config = withAgentTail({})
 
-        expect(config.env?.AGENT_TAIL_ENDPOINT).toBe("/__browser-logs")
+        expect(config.env?.AGENT_TAIL_ENDPOINT).toBe("/api/browser-logs")
         expect(config.env?.AGENT_TAIL_LOG_PATH).toBeTruthy()
         expect(config.env?.AGENT_TAIL_LOG_PATH).toContain("browser.log")
     })
@@ -47,7 +48,7 @@ describe("withAgentTail", () => {
 
         expect(config.reactStrictMode).toBe(true)
         expect(config.env?.CUSTOM).toBe("value")
-        expect(config.env?.AGENT_TAIL_ENDPOINT).toBe("/__browser-logs")
+        expect(config.env?.AGENT_TAIL_ENDPOINT).toBe("/api/browser-logs")
     })
 
     it("creates the log directory structure", () => {
@@ -88,6 +89,32 @@ describe("withAgentTail", () => {
         const env_keys = Object.keys(config.env || {})
         const double_underscore_keys = env_keys.filter(k => k.startsWith("__"))
         expect(double_underscore_keys).toEqual([])
+    })
+
+    it("default endpoint does not use _ prefix (Next.js private folder)", () => {
+        const config = withAgentTail({})
+        expect(config.env?.AGENT_TAIL_ENDPOINT).not.toMatch(/\/_/)
+    })
+
+    it("AgentTailScript reads endpoint from AGENT_TAIL_ENDPOINT env var", () => {
+        process.env.AGENT_TAIL_ENDPOINT = "/api/custom-logs"
+
+        const element = AgentTailScript({})
+        const script_html = element.props.dangerouslySetInnerHTML.__html
+
+        expect(script_html).toContain('"/api/custom-logs"')
+        expect(script_html).not.toContain('"/api/browser-logs"')
+
+        delete process.env.AGENT_TAIL_ENDPOINT
+    })
+
+    it("AgentTailScript uses default endpoint when env var is not set", () => {
+        delete process.env.AGENT_TAIL_ENDPOINT
+
+        const element = AgentTailScript({})
+        const script_html = element.props.dangerouslySetInnerHTML.__html
+
+        expect(script_html).toContain('"/api/browser-logs"')
     })
 
     it("joins an existing session from AGENT_TAIL_SESSION env var", () => {

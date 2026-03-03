@@ -24,6 +24,13 @@ interface AgentTailScriptProps {
  */
 export function AgentTailScript({ options: user_options }: AgentTailScriptProps = {}) {
     const options = resolve_options(user_options)
+
+    // Read endpoint from env (set by withAgentTail) so the script
+    // stays in sync without requiring the user to pass it in two places.
+    if (process.env.AGENT_TAIL_ENDPOINT) {
+        options.endpoint = process.env.AGENT_TAIL_ENDPOINT
+    }
+
     const script = generate_client_script(options)
 
     return (

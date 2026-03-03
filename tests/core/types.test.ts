@@ -17,8 +17,14 @@ describe("resolve_options", () => {
         expect(result.logDir).toBe("my-logs")
         expect(result.maxLogSessions).toBe(5)
         expect(result.logFileName).toBe("browser.log")
-        expect(result.endpoint).toBe("/__browser-logs")
+        expect(result.endpoint).toBe("/api/browser-logs")
         expect(result.flushInterval).toBe(500)
+    })
+
+    it("default endpoint does not start with underscore (Next.js private folder)", () => {
+        const result = resolve_options()
+        // Next.js treats folders starting with _ as private and excludes them from routing
+        expect(result.endpoint).not.toMatch(/\/_/)
     })
 
     it("allows overriding all options", () => {

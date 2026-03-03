@@ -101,7 +101,7 @@ const faqCategories: FAQCategory[] = [
 			{
 				question: "I don't see any logs appearing",
 				answer:
-					"Make sure your dev server is running and you're visiting a page in the browser. Check that the plugin is correctly configured in your build config. Look for the <code>/__browser-logs</code> endpoint being registered in your dev server output.",
+					"Make sure your dev server is running and you're visiting a page in the browser. Check that the plugin is correctly configured in your build config. Look for the <code>/api/browser-logs</code> endpoint being registered in your dev server output.",
 			},
 			{
 				question: "The gitignore warning is annoying",

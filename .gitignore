@@ -5,3 +5,4 @@ dist
 tmp/
 .next
 docs/out
+example/turborepo/.turbo/

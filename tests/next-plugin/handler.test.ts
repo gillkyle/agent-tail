@@ -35,7 +35,7 @@ describe("Next.js handler", () => {
             const entries = [
                 { level: "log", args: ["hello"], timestamp: "10:00:00.000" },
             ]
-            const request = new Request("http://localhost/__browser-logs", {
+            const request = new Request("http://localhost/api/browser-logs", {
                 method: "POST",
                 body: JSON.stringify(entries),
                 headers: { "Content-Type": "application/json" },
@@ -51,7 +51,7 @@ describe("Next.js handler", () => {
 
         it("returns 500 when log path is not configured", async () => {
             delete process.env.AGENT_TAIL_LOG_PATH
-            const request = new Request("http://localhost/__browser-logs", {
+            const request = new Request("http://localhost/api/browser-logs", {
                 method: "POST",
                 body: JSON.stringify([]),
             })
@@ -67,7 +67,7 @@ describe("Next.js handler", () => {
                 { level: "log", args: ["keep"], timestamp: "10:00:00.000" },
                 { level: "log", args: ["noisy stuff"], timestamp: "10:00:00.001" },
             ]
-            const request = new Request("http://localhost/__browser-logs", {
+            const request = new Request("http://localhost/api/browser-logs", {
                 method: "POST",
                 body: JSON.stringify(entries),
                 headers: { "Content-Type": "application/json" },
@@ -82,7 +82,7 @@ describe("Next.js handler", () => {
         })
 
         it("returns 204 on malformed JSON", async () => {
-            const request = new Request("http://localhost/__browser-logs", {
+            const request = new Request("http://localhost/api/browser-logs", {
                 method: "POST",
                 body: "not json",
             })

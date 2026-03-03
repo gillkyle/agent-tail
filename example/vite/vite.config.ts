@@ -8,7 +8,7 @@ export default defineConfig({
             // logDir: "tmp/logs",
             // logFileName: "browser.log",
             // maxLogSessions: 10,
-            // endpoint: "/__browser-logs",
+            // endpoint: "/api/browser-logs",
             // flushInterval: 500,
             // maxBatchSize: 50,
             // maxSerializeLength: 2000,

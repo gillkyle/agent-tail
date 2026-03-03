@@ -55,7 +55,7 @@ describe("generate_client_script", () => {
         expect(script).toContain("FLUSH_INTERVAL = 500")
         expect(script).toContain("MAX_BATCH = 50")
         expect(script).toContain("MAX_SERIALIZE = 2000")
-        expect(script).toContain('"/__browser-logs"')
+        expect(script).toContain('"/api/browser-logs"')
         expect(script).toContain("CAPTURE_ERRORS = true")
         expect(script).toContain("CAPTURE_REJECTIONS = true")
     })
