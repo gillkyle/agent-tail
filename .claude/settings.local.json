@@ -19,7 +19,10 @@
       "Bash(pnpm --filter agent-tail-docs add:*)",
       "Bash(pnpm add:*)",
       "Bash(playwriter:*)",
-      "Bash(pnpm -w run test:*)"
+      "Bash(pnpm -w run test:*)",
+      "Bash(node:*)",
+      "WebSearch",
+      "Bash(pnpm ls:*)"
     ]
   }
 }

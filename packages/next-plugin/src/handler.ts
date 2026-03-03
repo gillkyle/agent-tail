@@ -9,13 +9,13 @@ import { format_log_line, should_exclude } from "agent-tail-core"
  *   export { POST } from "next-plugin-browser-logs/handler"
  */
 export async function POST(request: Request): Promise<Response> {
-    const log_path = process.env.__BROWSER_LOGS_PATH
+    const log_path = process.env.AGENT_TAIL_LOG_PATH
     if (!log_path) {
         return new Response("Browser logs not configured", { status: 500 })
     }
 
     try {
-        const excludes: string[] = JSON.parse(process.env.__BROWSER_LOGS_EXCLUDES || "[]")
+        const excludes: string[] = JSON.parse(process.env.AGENT_TAIL_EXCLUDES || "[]")
         let entries: LogEntry[] = await request.json()
         if (excludes.length) {
             entries = entries.filter(e => !should_exclude(e.args.join(" "), excludes))
@@ -43,14 +43,14 @@ export function pages_handler(
         return
     }
 
-    const log_path = process.env.__BROWSER_LOGS_PATH
+    const log_path = process.env.AGENT_TAIL_LOG_PATH
     if (!log_path) {
         res.status(500).end()
         return
     }
 
     try {
-        const excludes: string[] = JSON.parse(process.env.__BROWSER_LOGS_EXCLUDES || "[]")
+        const excludes: string[] = JSON.parse(process.env.AGENT_TAIL_EXCLUDES || "[]")
         let entries: LogEntry[] =
             typeof req.body === "string" ? JSON.parse(req.body) : req.body
         if (excludes.length) {

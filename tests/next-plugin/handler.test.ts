@@ -20,12 +20,12 @@ describe("Next.js handler", () => {
         temp_dir = create_temp_dir()
         log_file = path.join(temp_dir, "browser.log")
         fs.writeFileSync(log_file, "")
-        process.env.__BROWSER_LOGS_PATH = log_file
+        process.env.AGENT_TAIL_LOG_PATH = log_file
     })
 
     afterEach(() => {
-        delete process.env.__BROWSER_LOGS_PATH
-        delete process.env.__BROWSER_LOGS_EXCLUDES
+        delete process.env.AGENT_TAIL_LOG_PATH
+        delete process.env.AGENT_TAIL_EXCLUDES
         cleanup(temp_dir)
         vi.restoreAllMocks()
     })
@@ -50,7 +50,7 @@ describe("Next.js handler", () => {
         })
 
         it("returns 500 when log path is not configured", async () => {
-            delete process.env.__BROWSER_LOGS_PATH
+            delete process.env.AGENT_TAIL_LOG_PATH
             const request = new Request("http://localhost/__browser-logs", {
                 method: "POST",
                 body: JSON.stringify([]),
@@ -62,7 +62,7 @@ describe("Next.js handler", () => {
         })
 
         it("filters excluded entries", async () => {
-            process.env.__BROWSER_LOGS_EXCLUDES = JSON.stringify(["noisy"])
+            process.env.AGENT_TAIL_EXCLUDES = JSON.stringify(["noisy"])
             const entries = [
                 { level: "log", args: ["keep"], timestamp: "10:00:00.000" },
                 { level: "log", args: ["noisy stuff"], timestamp: "10:00:00.001" },
@@ -120,7 +120,7 @@ describe("Next.js handler", () => {
         })
 
         it("filters excluded entries", () => {
-            process.env.__BROWSER_LOGS_EXCLUDES = JSON.stringify(["/^debug/"])
+            process.env.AGENT_TAIL_EXCLUDES = JSON.stringify(["/^debug/"])
             const entries = [
                 { level: "log", args: ["keep this"], timestamp: "10:00:00.000" },
                 { level: "debug", args: ["debug info"], timestamp: "10:00:00.001" },

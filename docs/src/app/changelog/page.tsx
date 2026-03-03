@@ -26,6 +26,15 @@ const badgeLabels: Record<ChangeType, string> = {
 
 const releases: Release[] = [
   {
+    version: "0.3.8",
+    date: "March 2026",
+    changes: [
+      { type: "added", text: <>Next.js 16 support &mdash; tested against Next.js 16.1.6 with Turbopack as the default bundler</> },
+      { type: "fixed", text: <>Renamed internal env vars from <code>__BROWSER_LOGS_*</code> to <code>AGENT_TAIL_*</code> &mdash; Next.js 16 rejects double-underscore prefixed keys in config validation</> },
+      { type: "fixed", text: <><code>withAgentTail</code> no longer adds an unnecessary <code>webpack</code> key to the Next.js config, avoiding conflicts with Turbopack (the default bundler in Next.js 16+)</> },
+    ],
+  },
+  {
     version: "0.3.6",
     date: "February 2026",
     changes: [

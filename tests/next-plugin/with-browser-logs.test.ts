@@ -34,9 +34,9 @@ describe("withAgentTail", () => {
     it("returns a config with env variables set", () => {
         const config = withAgentTail({})
 
-        expect(config.env?.__BROWSER_LOGS_ENDPOINT).toBe("/__browser-logs")
-        expect(config.env?.__BROWSER_LOGS_PATH).toBeTruthy()
-        expect(config.env?.__BROWSER_LOGS_PATH).toContain("browser.log")
+        expect(config.env?.AGENT_TAIL_ENDPOINT).toBe("/__browser-logs")
+        expect(config.env?.AGENT_TAIL_LOG_PATH).toBeTruthy()
+        expect(config.env?.AGENT_TAIL_LOG_PATH).toContain("browser.log")
     })
 
     it("preserves existing next config properties", () => {
@@ -47,7 +47,7 @@ describe("withAgentTail", () => {
 
         expect(config.reactStrictMode).toBe(true)
         expect(config.env?.CUSTOM).toBe("value")
-        expect(config.env?.__BROWSER_LOGS_ENDPOINT).toBe("/__browser-logs")
+        expect(config.env?.AGENT_TAIL_ENDPOINT).toBe("/__browser-logs")
     })
 
     it("creates the log directory structure", () => {
@@ -58,6 +58,11 @@ describe("withAgentTail", () => {
 
         const latest = path.join(log_dir, "latest")
         expect(fs.lstatSync(latest).isSymbolicLink()).toBe(true)
+    })
+
+    it("does not add webpack key when user config has none (Turbopack compat)", () => {
+        const config = withAgentTail({})
+        expect(config.webpack).toBeUndefined()
     })
 
     it("preserves existing webpack config", () => {
@@ -75,7 +80,14 @@ describe("withAgentTail", () => {
     it("uses custom options", () => {
         const config = withAgentTail({}, { endpoint: "/__custom" })
 
-        expect(config.env?.__BROWSER_LOGS_ENDPOINT).toBe("/__custom")
+        expect(config.env?.AGENT_TAIL_ENDPOINT).toBe("/__custom")
+    })
+
+    it("does not use __ prefixed env var keys (Next.js 16 rejects them)", () => {
+        const config = withAgentTail({})
+        const env_keys = Object.keys(config.env || {})
+        const double_underscore_keys = env_keys.filter(k => k.startsWith("__"))
+        expect(double_underscore_keys).toEqual([])
     })
 
     it("joins an existing session from AGENT_TAIL_SESSION env var", () => {
@@ -87,8 +99,8 @@ describe("withAgentTail", () => {
         const config = withAgentTail({})
 
         // Log path should point into the existing session
-        expect(config.env?.__BROWSER_LOGS_PATH).toContain("existing-session")
-        expect(config.env?.__BROWSER_LOGS_PATH).toContain("browser.log")
+        expect(config.env?.AGENT_TAIL_LOG_PATH).toContain("existing-session")
+        expect(config.env?.AGENT_TAIL_LOG_PATH).toContain("browser.log")
 
         // browser.log should exist in the joined session
         const log_file = path.join(session_dir, "browser.log")
