@@ -1,7 +1,7 @@
 {
     "name": "agent-tail",
     "type": "module",
-    "version": "0.3.6",
+    "version": "0.3.7",
     "description": "Umbrella package for agent-tail — pipes browser console logs to files on disk during development.",
     "license": "MIT",
     "repository": {
@@ -74,7 +74,7 @@
     "devDependencies": {
         "tsdown": "^0.18.1",
         "vite": "^6.0.0",
-        "next": "^15.0.0",
+        "next": "^16.0.0",
         "react": "^19.0.0",
         "@types/react": "^19.0.0"
     },

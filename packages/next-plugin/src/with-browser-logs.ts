@@ -25,7 +25,7 @@ export function withAgentTail(
         log_path = log_manager.initialize(project_root)
     }
 
-    return {
+    const result: NextConfig = {
         ...next_config,
         env: {
             ...next_config.env,
@@ -33,11 +33,16 @@ export function withAgentTail(
             __BROWSER_LOGS_PATH: log_path,
             __BROWSER_LOGS_EXCLUDES: JSON.stringify(options.excludes),
         },
-        webpack(config: any, context: any) {
-            if (typeof next_config.webpack === "function") {
-                config = next_config.webpack(config, context)
-            }
-            return config
-        },
     }
+
+    // Only add webpack wrapper if the user has a custom webpack config.
+    // Avoids adding an unnecessary webpack key that conflicts with Turbopack
+    // (the default bundler in Next.js 16+).
+    if (typeof next_config.webpack === "function") {
+        result.webpack = (config: any, context: any) => {
+            return next_config.webpack!(config, context)
+        }
+    }
+
+    return result
 }

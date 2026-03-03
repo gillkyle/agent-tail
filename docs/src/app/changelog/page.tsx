@@ -26,6 +26,14 @@ const badgeLabels: Record<ChangeType, string> = {
 
 const releases: Release[] = [
   {
+    version: "0.3.7",
+    date: "March 2026",
+    changes: [
+      { type: "added", text: <>Next.js 16 support &mdash; tested against Next.js 16.1.6 with Turbopack as the default bundler</> },
+      { type: "fixed", text: <><code>withAgentTail</code> no longer adds an unnecessary <code>webpack</code> key to the Next.js config, which could conflict with Turbopack (the default bundler in Next.js 16+). The webpack wrapper is now only included when the user has a custom webpack config.</> },
+    ],
+  },
+  {
     version: "0.3.6",
     date: "February 2026",
     changes: [
