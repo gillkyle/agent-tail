@@ -28,6 +28,8 @@ const DEFAULT_OPTS: CliOptions = {
     mutes: [],
 }
 
+const ANSI_COLOR_COMMAND = "if [ \"$FORCE_COLOR\" = \"1\" ]; then printf '\\033[31mcolored output\\033[0m\\n'; else printf 'plain output\\n'; fi"
+
 describe("CLI commands", () => {
     let temp_dir: string
 
@@ -154,6 +156,31 @@ describe("CLI commands", () => {
                 cmd_wrap(temp_dir, "svc", [], DEFAULT_OPTS)
             ).toThrow("requires a command")
         })
+
+        it("preserves ANSI output in terminal but strips it from logs", async () => {
+            cmd_init(temp_dir, DEFAULT_OPTS)
+
+            const write_spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+
+            const code = await cmd_wrap(
+                temp_dir,
+                "ansi-wrap",
+                [ANSI_COLOR_COMMAND],
+                DEFAULT_OPTS
+            )
+            expect(code).toBe(0)
+
+            const terminal_output = write_spy.mock.calls.map(c => c[0].toString()).join("")
+
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
+            const log_file = path.join(session_dir, "ansi-wrap.log")
+            const content = fs.readFileSync(log_file, "utf-8")
+
+            expect(terminal_output).toContain("\x1b[31mcolored output\x1b[0m")
+            expect(content).toContain("colored output")
+            expect(content).not.toContain("\x1b[31m")
+        })
     })
 
     describe("cmd_run", () => {
@@ -208,6 +235,31 @@ describe("CLI commands", () => {
             expect(() => cmd_run(temp_dir, [], DEFAULT_OPTS)).toThrow(
                 "requires at least one service"
             )
+        })
+
+        it("preserves ANSI output in terminal but strips it from run logs", async () => {
+            const write_spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+
+            await cmd_run(
+                temp_dir,
+                [`ansi: ${ANSI_COLOR_COMMAND}`],
+                DEFAULT_OPTS
+            )
+
+            const terminal_output = write_spy.mock.calls.map(c => c[0].toString()).join("")
+
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
+            const log_file = path.join(session_dir, "ansi.log")
+            const combined_file = path.join(session_dir, "combined.log")
+            const log_content = fs.readFileSync(log_file, "utf-8")
+            const combined_content = fs.readFileSync(combined_file, "utf-8")
+
+            expect(terminal_output).toContain("\x1b[31mcolored output\x1b[0m")
+            expect(log_content).toContain("colored output")
+            expect(log_content).not.toContain("\x1b[31m")
+            expect(combined_content).toContain("colored output")
+            expect(combined_content).not.toContain("\x1b[31m")
         })
     })
 
