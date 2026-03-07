@@ -1,16 +1,12 @@
 import { spawn } from "node:child_process"
 import fs from "node:fs"
 import path from "node:path"
+import { strip_ansi_codes } from "./ansi"
 import { LogManager, SESSION_ENV_VAR } from "./log-manager"
 import { resolve_options } from "./types"
 import { should_exclude } from "./filter"
 
 const PREFIX = "\x1b[36m[agent-tail]\x1b[0m"
-const ANSI_PATTERN = /\x1B\[[0-?]*[ -/]*[@-~]/g
-
-function strip_ansi_codes(text: string): string {
-    return text.replace(ANSI_PATTERN, "")
-}
 
 function get_child_env(session_dir: string): NodeJS.ProcessEnv {
     const env: NodeJS.ProcessEnv = {

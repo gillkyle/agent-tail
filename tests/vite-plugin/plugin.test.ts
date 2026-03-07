@@ -185,6 +185,52 @@ describe("agentTail vite plugin", () => {
         expect(content).not.toContain("noisy message")
     })
 
+    it("strips ANSI escape codes before writing browser logs", () => {
+        const plugin = agentTail()
+        let handler: Function = () => {}
+        const mock_server = {
+            config: { root: temp_dir },
+            middlewares: {
+                use: (_p: string, h: Function) => {
+                    handler = h
+                },
+            },
+        }
+
+        vi.spyOn(console, "log").mockImplementation(() => {})
+        ;(plugin as any).configureServer(mock_server)
+
+        const log_entries = [
+            {
+                level: "error",
+                args: ["\x1b[31mbrowser boom\x1b[0m"],
+                timestamp: "10:30:00.123",
+                url: "\x1b]8;;https://example.com\x07https://example.com\x1b]8;;\x07",
+                stack: "\x1b[33mError: fail\x1b[0m\n    at \x1b[36mrender\x1b[0m (app.ts:1)",
+            },
+        ]
+
+        const req = new EventEmitter() as any
+        req.method = "POST"
+        const res = { writeHead: vi.fn(), end: vi.fn() }
+
+        handler(req, res)
+        req.emit("data", Buffer.from(JSON.stringify(log_entries)))
+        req.emit("end")
+
+        const log_dir = path.join(temp_dir, "tmp/logs")
+        const latest = path.join(log_dir, "latest")
+        const log_file = path.join(fs.realpathSync(latest), "browser.log")
+        const content = fs.readFileSync(log_file, "utf-8")
+
+        expect(content).toContain("browser boom")
+        expect(content).toContain("https://example.com")
+        expect(content).toContain("Error: fail")
+        expect(content).toContain("at render")
+        expect(content).not.toContain("\x1b[")
+        expect(content).not.toContain("\x1b]")
+    })
+
     it("joins an existing session from AGENT_TAIL_SESSION env var", () => {
         const session_dir = path.join(temp_dir, "tmp/logs/existing-session")
         fs.mkdirSync(session_dir, { recursive: true })

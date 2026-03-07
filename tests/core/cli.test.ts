@@ -29,6 +29,7 @@ const DEFAULT_OPTS: CliOptions = {
 }
 
 const ANSI_COLOR_COMMAND = "if [ \"$FORCE_COLOR\" = \"1\" ]; then printf '\\033[31mcolored output\\033[0m\\n'; else printf 'plain output\\n'; fi"
+const ANSI_COLOR_STDERR_COMMAND = "if [ \"$FORCE_COLOR\" = \"1\" ]; then printf '\\033[33mcolored stderr\\033[0m\\n' >&2; else printf 'plain stderr\\n' >&2; fi"
 
 describe("CLI commands", () => {
     let temp_dir: string
@@ -181,6 +182,32 @@ describe("CLI commands", () => {
             expect(content).toContain("colored output")
             expect(content).not.toContain("\x1b[31m")
         })
+
+        it("preserves ANSI stderr in terminal and strips it from wrap logs", async () => {
+            cmd_init(temp_dir, DEFAULT_OPTS)
+
+            const stderr_spy = vi.spyOn(process.stderr, "write").mockImplementation(() => true)
+
+            const code = await cmd_wrap(
+                temp_dir,
+                "ansi-wrap-stderr",
+                [ANSI_COLOR_STDERR_COMMAND],
+                DEFAULT_OPTS
+            )
+            expect(code).toBe(0)
+
+            const terminal_output = stderr_spy.mock.calls.map(c => c[0].toString()).join("")
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
+            const log_content = fs.readFileSync(path.join(session_dir, "ansi-wrap-stderr.log"), "utf-8")
+            const combined_content = fs.readFileSync(path.join(session_dir, "combined.log"), "utf-8")
+
+            expect(terminal_output).toContain("\x1b[33mcolored stderr\x1b[0m")
+            expect(log_content).toContain("colored stderr")
+            expect(log_content).not.toContain("\x1b[33m")
+            expect(combined_content).toContain("colored stderr")
+            expect(combined_content).not.toContain("\x1b[33m")
+        })
     })
 
     describe("cmd_run", () => {
@@ -260,6 +287,29 @@ describe("CLI commands", () => {
             expect(log_content).not.toContain("\x1b[31m")
             expect(combined_content).toContain("colored output")
             expect(combined_content).not.toContain("\x1b[31m")
+        })
+
+        it("preserves ANSI stderr in terminal but strips it from run logs", async () => {
+            const stderr_spy = vi.spyOn(process.stderr, "write").mockImplementation(() => true)
+
+            await cmd_run(
+                temp_dir,
+                [`ansi: ${ANSI_COLOR_STDERR_COMMAND}`],
+                DEFAULT_OPTS
+            )
+
+            const terminal_output = stderr_spy.mock.calls.map(c => c[0].toString()).join("")
+
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
+            const log_content = fs.readFileSync(path.join(session_dir, "ansi.log"), "utf-8")
+            const combined_content = fs.readFileSync(path.join(session_dir, "combined.log"), "utf-8")
+
+            expect(terminal_output).toContain("\x1b[33mcolored stderr\x1b[0m")
+            expect(log_content).toContain("colored stderr")
+            expect(log_content).not.toContain("\x1b[33m")
+            expect(combined_content).toContain("colored stderr")
+            expect(combined_content).not.toContain("\x1b[33m")
         })
     })
 
