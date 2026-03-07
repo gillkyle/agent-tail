@@ -289,8 +289,8 @@ export function cmd_run(
             const lines = text.split(/\r?\n/)
             for (let j = 0; j < lines.length; j++) {
                 if (lines[j].length > 0) {
-                    if (options.excludes.length && should_exclude(lines[j], options.excludes)) continue
                     const log_line = strip_ansi_codes(lines[j])
+                    if (options.excludes.length && should_exclude(log_line, options.excludes)) continue
                     log_stream.write(log_line + "\n")
                     if (!is_muted) {
                         target.write(`${tag} ${lines[j]}\n`)

@@ -28,8 +28,10 @@ const DEFAULT_OPTS: CliOptions = {
     mutes: [],
 }
 
-const ANSI_COLOR_COMMAND = "if [ \"$FORCE_COLOR\" = \"1\" ]; then printf '\\033[31mcolored output\\033[0m\\n'; else printf 'plain output\\n'; fi"
-const ANSI_COLOR_STDERR_COMMAND = "if [ \"$FORCE_COLOR\" = \"1\" ]; then printf '\\033[33mcolored stderr\\033[0m\\n' >&2; else printf 'plain stderr\\n' >&2; fi"
+const ANSI_COLOR_COMMAND =
+    "if [ \"$FORCE_COLOR\" = \"1\" ]; then printf '\\033[31mcolored output\\033[0m\\n'; else printf 'plain output\\n'; fi"
+const ANSI_COLOR_STDERR_COMMAND =
+    "if [ \"$FORCE_COLOR\" = \"1\" ]; then printf '\\033[33mcolored stderr\\033[0m\\n' >&2; else printf 'plain stderr\\n' >&2; fi"
 
 describe("CLI commands", () => {
     let temp_dir: string
@@ -161,7 +163,9 @@ describe("CLI commands", () => {
         it("preserves ANSI output in terminal but strips it from logs", async () => {
             cmd_init(temp_dir, DEFAULT_OPTS)
 
-            const write_spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+            const write_spy = vi
+                .spyOn(process.stdout, "write")
+                .mockImplementation(() => true)
 
             const code = await cmd_wrap(
                 temp_dir,
@@ -171,7 +175,9 @@ describe("CLI commands", () => {
             )
             expect(code).toBe(0)
 
-            const terminal_output = write_spy.mock.calls.map(c => c[0].toString()).join("")
+            const terminal_output = write_spy.mock.calls
+                .map(c => c[0].toString())
+                .join("")
 
             const log_dir = path.join(temp_dir, "tmp/logs")
             const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
@@ -186,7 +192,9 @@ describe("CLI commands", () => {
         it("preserves ANSI stderr in terminal and strips it from wrap logs", async () => {
             cmd_init(temp_dir, DEFAULT_OPTS)
 
-            const stderr_spy = vi.spyOn(process.stderr, "write").mockImplementation(() => true)
+            const stderr_spy = vi
+                .spyOn(process.stderr, "write")
+                .mockImplementation(() => true)
 
             const code = await cmd_wrap(
                 temp_dir,
@@ -196,11 +204,19 @@ describe("CLI commands", () => {
             )
             expect(code).toBe(0)
 
-            const terminal_output = stderr_spy.mock.calls.map(c => c[0].toString()).join("")
+            const terminal_output = stderr_spy.mock.calls
+                .map(c => c[0].toString())
+                .join("")
             const log_dir = path.join(temp_dir, "tmp/logs")
             const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
-            const log_content = fs.readFileSync(path.join(session_dir, "ansi-wrap-stderr.log"), "utf-8")
-            const combined_content = fs.readFileSync(path.join(session_dir, "combined.log"), "utf-8")
+            const log_content = fs.readFileSync(
+                path.join(session_dir, "ansi-wrap-stderr.log"),
+                "utf-8"
+            )
+            const combined_content = fs.readFileSync(
+                path.join(session_dir, "combined.log"),
+                "utf-8"
+            )
 
             expect(terminal_output).toContain("\x1b[33mcolored stderr\x1b[0m")
             expect(log_content).toContain("colored stderr")
@@ -265,7 +281,9 @@ describe("CLI commands", () => {
         })
 
         it("preserves ANSI output in terminal but strips it from run logs", async () => {
-            const write_spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+            const write_spy = vi
+                .spyOn(process.stdout, "write")
+                .mockImplementation(() => true)
 
             await cmd_run(
                 temp_dir,
@@ -273,7 +291,9 @@ describe("CLI commands", () => {
                 DEFAULT_OPTS
             )
 
-            const terminal_output = write_spy.mock.calls.map(c => c[0].toString()).join("")
+            const terminal_output = write_spy.mock.calls
+                .map(c => c[0].toString())
+                .join("")
 
             const log_dir = path.join(temp_dir, "tmp/logs")
             const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
@@ -290,7 +310,9 @@ describe("CLI commands", () => {
         })
 
         it("preserves ANSI stderr in terminal but strips it from run logs", async () => {
-            const stderr_spy = vi.spyOn(process.stderr, "write").mockImplementation(() => true)
+            const stderr_spy = vi
+                .spyOn(process.stderr, "write")
+                .mockImplementation(() => true)
 
             await cmd_run(
                 temp_dir,
@@ -298,18 +320,48 @@ describe("CLI commands", () => {
                 DEFAULT_OPTS
             )
 
-            const terminal_output = stderr_spy.mock.calls.map(c => c[0].toString()).join("")
+            const terminal_output = stderr_spy.mock.calls
+                .map(c => c[0].toString())
+                .join("")
 
             const log_dir = path.join(temp_dir, "tmp/logs")
             const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
-            const log_content = fs.readFileSync(path.join(session_dir, "ansi.log"), "utf-8")
-            const combined_content = fs.readFileSync(path.join(session_dir, "combined.log"), "utf-8")
+            const log_content = fs.readFileSync(
+                path.join(session_dir, "ansi.log"),
+                "utf-8"
+            )
+            const combined_content = fs.readFileSync(
+                path.join(session_dir, "combined.log"),
+                "utf-8"
+            )
 
             expect(terminal_output).toContain("\x1b[33mcolored stderr\x1b[0m")
             expect(log_content).toContain("colored stderr")
             expect(log_content).not.toContain("\x1b[33m")
             expect(combined_content).toContain("colored stderr")
             expect(combined_content).not.toContain("\x1b[33m")
+        })
+
+        it("filters ANSI-colored excluded lines from run logs", async () => {
+            vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+
+            const opts = { ...DEFAULT_OPTS, excludes: ["secret"] }
+            await cmd_run(
+                temp_dir,
+                [
+                    "svc: printf '\\033[31msecret data\\033[0m\\nkeep this\\n'",
+                ],
+                opts
+            )
+
+            const log_dir = path.join(temp_dir, "tmp/logs")
+            const session_dir = fs.realpathSync(path.join(log_dir, "latest"))
+            const log_file = path.join(session_dir, "svc.log")
+            const content = fs.readFileSync(log_file, "utf-8")
+
+            expect(content).toContain("keep this")
+            expect(content).not.toContain("secret data")
+            expect(content).not.toContain("\x1b[31m")
         })
     })
 
@@ -419,7 +471,9 @@ describe("CLI commands", () => {
         })
 
         it("muted service is excluded from terminal output", async () => {
-            const write_spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+            const write_spy = vi
+                .spyOn(process.stdout, "write")
+                .mockImplementation(() => true)
 
             const opts = { ...DEFAULT_OPTS, mutes: ["quiet"] }
             await cmd_run(
@@ -428,7 +482,9 @@ describe("CLI commands", () => {
                 opts
             )
 
-            const terminal_output = write_spy.mock.calls.map(c => c[0].toString()).join("")
+            const terminal_output = write_spy.mock.calls
+                .map(c => c[0].toString())
+                .join("")
 
             expect(terminal_output).toContain("visible")
             expect(terminal_output).not.toContain("hidden")
