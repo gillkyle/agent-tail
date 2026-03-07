@@ -76,4 +76,23 @@ describe("format_log_line", () => {
         expect(result).not.toContain("(")
         expect(result).not.toContain(")")
     })
+
+    it("strips ANSI codes from messages, urls, and stack traces", () => {
+        const entry: LogEntry = {
+            level: "error",
+            args: ["\x1b[31mboom\x1b[0m", "plain"],
+            timestamp: "10:30:00.123",
+            url: "\x1b]8;;https://example.com\x07https://example.com\x1b]8;;\x07",
+            stack: "\x1b[33mError: fail\x1b[0m\n    at \x1b[36mfoo\x1b[0m (main.ts:10)",
+        }
+
+        const result = format_log_line(entry)
+
+        expect(result).toContain("boom plain")
+        expect(result).toContain("(https://example.com)")
+        expect(result).toContain("Error: fail")
+        expect(result).toContain("at foo")
+        expect(result).not.toContain("\x1b[")
+        expect(result).not.toContain("\x1b]")
+    })
 })

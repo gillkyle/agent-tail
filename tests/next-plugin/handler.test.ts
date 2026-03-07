@@ -91,6 +91,34 @@ describe("Next.js handler", () => {
 
             expect(response.status).toBe(204)
         })
+
+        it("strips ANSI escape codes before writing app router logs", async () => {
+            const entries = [
+                {
+                    level: "error",
+                    args: ["\x1b[31mboom\x1b[0m"],
+                    timestamp: "10:00:00.000",
+                    url: "\x1b]8;;https://example.com\x07https://example.com\x1b]8;;\x07",
+                    stack: "\x1b[33mError: fail\x1b[0m\n    at \x1b[36mrender\x1b[0m (app.ts:1)",
+                },
+            ]
+            const request = new Request("http://localhost/api/browser-logs", {
+                method: "POST",
+                body: JSON.stringify(entries),
+                headers: { "Content-Type": "application/json" },
+            })
+
+            const response = await POST(request)
+
+            expect(response.status).toBe(204)
+            const content = fs.readFileSync(log_file, "utf-8")
+            expect(content).toContain("boom")
+            expect(content).toContain("https://example.com")
+            expect(content).toContain("Error: fail")
+            expect(content).toContain("at render")
+            expect(content).not.toContain("\x1b[")
+            expect(content).not.toContain("\x1b]")
+        })
     })
 
     describe("pages_handler (Pages Router)", () => {
@@ -148,6 +176,28 @@ describe("Next.js handler", () => {
 
             const content = fs.readFileSync(log_file, "utf-8")
             expect(content).toContain("parsed")
+        })
+
+        it("strips ANSI escape codes before writing pages router logs", () => {
+            const entries = [
+                {
+                    level: "warn",
+                    args: ["\x1b[33mwarning\x1b[0m"],
+                    timestamp: "10:00:00.000",
+                    stack: "\x1b[31mError\x1b[0m\n    at \x1b[36mhandler\x1b[0m (page.ts:2)",
+                },
+            ]
+            const req = { method: "POST", body: entries }
+            const end_fn = vi.fn()
+            const res = { status: vi.fn(() => ({ end: end_fn })) }
+
+            pages_handler(req, res)
+
+            const content = fs.readFileSync(log_file, "utf-8")
+            expect(content).toContain("warning")
+            expect(content).toContain("Error")
+            expect(content).toContain("at handler")
+            expect(content).not.toContain("\x1b[")
         })
     })
 })
