@@ -68,7 +68,7 @@ const IconCopyAnimated = ({
 
 function InstallSnippet() {
 	const [copied, setCopied] = useState(false);
-	const command = "npm install agent-tail";
+	const command = "npm install -D agent-tail";
 
 	const handleCopy = async () => {
 		await navigator.clipboard.writeText(command);
@@ -117,7 +117,19 @@ export default function OverviewPage() {
 				<section>
 					<h2>How you use it</h2>
 
-					<h3>Wrap your dev command</h3>
+					<h3>1. Install</h3>
+					<p>
+						Install it globally for a shell command, or add it to a project for{" "}
+						<code>npx</code> and package scripts.
+					</p>
+					<CodeBlock
+						code={`npm install -g agent-tail
+npm install -D agent-tail`}
+						language="bash"
+						copyable
+					/>
+
+					<h3>2. Wrap your dev command</h3>
 					<p>
 						The simplest path &mdash; add one line to your{" "}
 						<code>package.json</code>:
@@ -144,6 +156,27 @@ export default function OverviewPage() {
 					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
 						One line, zero config. Every service gets its own log file plus a{" "}
 						<code>combined.log</code>.
+					</p>
+
+					<h3>3. Tail the logs</h3>
+					<p>
+						Use plain <code>tail</code> if you want direct file paths, or use{" "}
+						<code>agent-tail tail</code> if you want the CLI to resolve the
+						latest session for you.
+					</p>
+					<CodeBlock
+						code={`tail -f tmp/logs/latest/*.log
+tail -f tmp/logs/latest/browser.log
+
+agent-tail tail -f
+agent-tail tail browser -n 50`}
+						language="bash"
+						copyable
+					/>
+					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
+						<code>agent-tail tail</code> forwards flags like <code>-f</code> and{" "}
+						<code>-n 50</code> straight through to the system{" "}
+						<code>tail</code> command.
 					</p>
 
 					<h3>Add a framework plugin</h3>

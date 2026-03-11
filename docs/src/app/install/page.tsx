@@ -31,14 +31,31 @@ export default function InstallPage() {
 						files. No plugins, no config &mdash; works with any language or
 						framework.
 					</p>
+					<h3>1. Install the CLI</h3>
+					<p>Global install:</p>
+					<CodeBlock
+						code="npm install -g agent-tail"
+						language="bash"
+						copyable
+					/>
+					<p>Project install:</p>
 					<CodeBlock
 						code="npm install -D agent-tail"
 						language="bash"
 						copyable
 					/>
-					<h3>
-						<code>agent-tail run</code>
-					</h3>
+					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
+						Global install gives you <code>agent-tail</code> directly in your
+						shell. Project install works with <code>npx agent-tail</code> or
+						package scripts. In both cases, logs still go to{" "}
+						<code>tmp/logs/</code> relative to the project by default.
+					</p>
+					<p style={{ fontSize: "0.8125rem", color: "rgba(0,0,0,0.55)" }}>
+						If you prefer a hidden folder, use <code>--log-dir .agent-tail</code>{" "}
+						for the CLI and <code>logDir: ".agent-tail"</code> for the
+						framework plugin config.
+					</p>
+					<h3>2. Wrap your dev command</h3>
 					<p>Wrap one or more commands with unified logging:</p>
 					<DiffBlock
 						oldFile={{
@@ -73,6 +90,21 @@ export default function InstallPage() {
 					</p>
 					<CodeBlock
 						code="npx agent-tail run 'api: uv run fastapi dev'"
+						language="bash"
+						copyable
+					/>
+					<h3>3. Tail the logs</h3>
+					<p>
+						Use plain <code>tail</code> if you want direct file paths, or use{" "}
+						<code>agent-tail tail</code> if you want the CLI to resolve the
+						latest session for you and forward the flags unchanged.
+					</p>
+					<CodeBlock
+						code={`tail -f tmp/logs/latest/*.log
+tail -f tmp/logs/latest/browser.log
+
+agent-tail tail -f
+agent-tail tail browser -n 50`}
 						language="bash"
 						copyable
 					/>
@@ -114,7 +146,9 @@ export default defineConfig({
 					/>
 					<p>Then in another terminal:</p>
 					<CodeBlock
-						code="tail -f tmp/logs/latest/browser.log"
+						code={`tail -f tmp/logs/latest/browser.log
+# or
+agent-tail tail browser -f`}
 						language="bash"
 						copyable
 					/>
@@ -233,7 +267,8 @@ is symlinked at \`tmp/logs/latest/\`.
 When debugging, check logs before guessing about runtime behavior:
 
     grep -ri "error\\|warn" tmp/logs/latest/
-    tail -50 tmp/logs/latest/browser.log`}
+    tail -50 tmp/logs/latest/browser.log
+    agent-tail tail browser -n 50`}
 						language="markdown"
 					/>
 				</section>

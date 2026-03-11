@@ -14,8 +14,53 @@ npx agent-tail run 'server: echo "Hello world!"' && cat tmp/logs/latest/server.l
 
 That's the full cycle: run a command, output is captured to a log file, read the file.
 
+## Quickstart
+
+### 1. Install globally or into a project
+
+Global install:
+
+```bash
+npm install -g agent-tail
+```
+
+Project install:
+
+```bash
+npm install -D agent-tail
+```
+
+Global install only changes how you invoke the CLI. Logs still go to `tmp/logs/` relative to the current project by default.
+
+### 2. Wrap your dev command
+
+```bash
+agent-tail run 'fe: npm run dev' 'api: uv run server'
+```
+
+Or, with a project-local install:
+
+```bash
+npx agent-tail run 'fe: npm run dev' 'api: uv run server'
+```
+
+### 3. Tail the logs
+
+```bash
+tail -f tmp/logs/latest/*.log
+tail -f tmp/logs/latest/browser.log
+
+agent-tail tail -f
+agent-tail tail browser -n 50
+```
+
+Use plain `tail` if you want direct file paths. Use `agent-tail tail` if you want the CLI to resolve the latest session for you. It forwards flags like `-f` and `-n 50` directly to system `tail`.
+
+If you prefer a hidden folder, use `--log-dir .agent-tail` for the CLI and `logDir: ".agent-tail"` for the Vite/Next.js plugin config.
+
 ## Table of Contents
 
+- [Quickstart](#quickstart)
 - [Server-side and client-side logs](#server-side-and-client-side-logs)
 - [Installation](#installation) — [CLI](#cli-server-side-logs) | [Vite](#vite-plugin-browser-logs) | [Next.js](#nextjs-plugin-browser-logs)
 - [Packages](#packages)
@@ -45,9 +90,19 @@ agent-tail run 'fe: npm run dev' 'api: uv run server'
 
 The CLI wraps any command and captures its stdout/stderr to log files. No plugins, no config — works with any language or framework.
 
+Global install:
+
+```bash
+npm install -g agent-tail
+```
+
+Project install:
+
 ```bash
 npm install -D agent-tail
 ```
+
+Global install still writes logs to `tmp/logs/` in the current project by default. To switch to a hidden folder, pass `--log-dir .agent-tail` or configure `logDir: ".agent-tail"` in the framework plugin.
 
 Wrap one or more commands with unified logging in your `package.json`:
 
@@ -89,6 +144,8 @@ Then in another terminal:
 
 ```bash
 tail -f tmp/logs/latest/browser.log
+# or
+agent-tail tail browser -f
 ```
 
 ### Next.js plugin (browser logs)
@@ -234,6 +291,8 @@ npx agent-tail wrap api -- uv run fastapi-server
 
 # Terminal 3: Tail everything
 tail -f tmp/logs/latest/*.log
+# or
+agent-tail tail -f
 ```
 
 **3. Direct file writes (no CLI needed)**
@@ -339,14 +398,19 @@ The `--log-dir` path is relative to each package, so adjust based on your monore
 
 ### Searching and tailing logs
 
-Because logs are plain files, every standard Unix tool works out of the box:
+Both work: direct Unix tools on the log files themselves, or `agent-tail tail` when you want the CLI to resolve the latest session for you.
 
 ```bash
 # Follow all logs in real time
 tail -f tmp/logs/latest/*.log
+agent-tail tail -f
 
 # Follow a specific service
 tail -f tmp/logs/latest/browser.log
+agent-tail tail browser -f
+
+# The wrapper forwards directly to system tail
+agent-tail tail combined -n 100
 
 # Find all errors across every service
 grep -r "ERROR" tmp/logs/latest/
@@ -420,6 +484,7 @@ When debugging, check logs before guessing about runtime behavior:
 
     grep -ri "error\|warn" tmp/logs/latest/
     tail -50 tmp/logs/latest/browser.log
+    agent-tail tail browser -n 50
 ```
 
 ## Configuration
@@ -505,6 +570,8 @@ export { POST } from "agent-tail/next/handler"
 
 ### CLI Options
 
+Shared options for `agent-tail run`, `agent-tail wrap`, and `agent-tail init`:
+
 ```
 --log-dir <dir>       Log directory relative to cwd (default: tmp/logs)
 --max-sessions <n>    Max sessions to keep (default: 10)
@@ -550,6 +617,18 @@ agent-tail init
 ```
 
 Sets up the session directory and `latest` symlink. Useful when other tools (like framework plugins) will write to the session.
+
+### `agent-tail tail`
+
+Tail the latest session's logs via the system `tail` command:
+
+```bash
+agent-tail tail -f
+agent-tail tail browser -n 50
+agent-tail tail combined -f
+```
+
+With no query, `agent-tail tail` tails every `.log` file in the latest session. With a query, it looks for an exact `<query>.log` match first, then falls back to substring matches. Any remaining flags are passed straight to `tail`.
 
 ## Why Files, Not MCP
 

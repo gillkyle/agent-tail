@@ -112,7 +112,9 @@ npm run dev
 npx agent-tail wrap api -- uv run fastapi-server
 
 # Terminal 3: Tail everything
-tail -f tmp/logs/latest/*.log`}
+tail -f tmp/logs/latest/*.log
+# or
+agent-tail tail -f`}
             language="bash"
           />
 
@@ -166,14 +168,19 @@ const log_stream = fs.createWriteStream(
         <section>
           <h2 id="searching-and-tailing">Searching and tailing logs</h2>
           <p>
-            Because logs are plain files, every standard Unix tool works out of the box. Here are the most useful patterns:
+            Both work: direct Unix tools on the log files themselves, or <code>agent-tail tail</code> when you want the CLI to resolve the latest session for you.
           </p>
           <CodeBlock
             code={`# Follow all logs in real time
 tail -f tmp/logs/latest/*.log
+agent-tail tail -f
 
 # Follow a specific service
 tail -f tmp/logs/latest/browser.log
+agent-tail tail browser -f
+
+# Forward any normal tail flags
+agent-tail tail combined -n 100
 
 # Find all errors across every service
 grep -r "ERROR" tmp/logs/latest/

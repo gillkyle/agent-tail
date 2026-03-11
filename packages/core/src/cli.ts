@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { parseArgs } from "node:util"
-import { cmd_init, cmd_wrap, cmd_run } from "./commands"
-import type { CliOptions } from "./commands"
+import { cmd_init, cmd_wrap, cmd_run, cmd_tail } from "./commands"
+import type { CliOptions, TailCommandOptions } from "./commands"
 
 const HELP = `
   \x1b[1magent-tail\x1b[0m — Pipe any dev server's output into your unified log session
@@ -11,8 +11,9 @@ const HELP = `
     agent-tail init                          Create a new log session
     agent-tail wrap <name> -- <command...>   Wrap a command, pipe output to <name>.log
     agent-tail run <config...>               Run multiple services concurrently
+    agent-tail tail [query] [--] [tail args...]  Tail the latest session's logs via system tail
 
-  \x1b[1mOptions:\x1b[0m
+  \x1b[1mShared Options:\x1b[0m
     --log-dir <dir>       Log directory relative to cwd (default: tmp/logs)
     --max-sessions <n>    Max sessions to keep (default: 10)
     --no-combined         Don't write to combined.log
@@ -20,11 +21,18 @@ const HELP = `
     --mute <name>         Mute a service from terminal and combined.log (repeatable, still logs to <name>.log)
     -h, --help            Show this help
 
+  \x1b[1mTail:\x1b[0m
+    agent-tail tail        Tail every .log file in the latest session
+    agent-tail tail <log>  Tail a specific log by exact or partial name
+    tail args              Forwarded directly to system tail (for example: -f, -n 50)
+
   \x1b[1mExamples:\x1b[0m
     agent-tail init
     agent-tail wrap api -- uv run fastapi-server
     agent-tail wrap worker -- python -m celery worker
     agent-tail run "fe: npm run dev" "api: uv run server" "worker: uv run worker"
+    agent-tail tail -f
+    agent-tail tail browser -n 50
 `
 
 function parse_cli_options(args: string[]): {
@@ -71,6 +79,58 @@ function parse_cli_options(args: string[]): {
     }
 }
 
+function parse_tail_options(args: string[]): TailCommandOptions {
+    let log_dir = "tmp/logs"
+    let query: string | undefined
+    let i = 0
+
+    while (i < args.length) {
+        const arg = args[i]
+        if (arg === "--") {
+            i += 1
+            break
+        }
+        if (!arg.startsWith("-") || arg === "-") {
+            break
+        }
+
+        switch (arg) {
+            case "--log-dir":
+                log_dir = args[i + 1] ?? ""
+                if (!log_dir) {
+                    throw new Error(`Missing value for ${arg}`)
+                }
+                i += 2
+                continue
+            case "--help":
+            case "-h":
+                console.log(HELP)
+                process.exit(0)
+            default:
+                return {
+                    log_dir,
+                    query,
+                    tail_args: args.slice(i),
+                }
+        }
+    }
+
+    if (args[i] && !args[i].startsWith("-")) {
+        query = args[i]
+        i += 1
+    }
+
+    if (args[i] === "--") {
+        i += 1
+    }
+
+    return {
+        log_dir,
+        query,
+        tail_args: args.slice(i),
+    }
+}
+
 async function main() {
     const args = process.argv.slice(2)
 
@@ -81,17 +141,18 @@ async function main() {
 
     const subcommand = args[0]
     const sub_args = args.slice(1)
-    const { options, positionals, rest } = parse_cli_options(sub_args)
     const project_root = process.cwd()
 
     try {
         switch (subcommand) {
             case "init": {
+                const { options } = parse_cli_options(sub_args)
                 const session_dir = cmd_init(project_root, options)
                 console.log(session_dir)
                 break
             }
             case "wrap": {
+                const { options, positionals, rest } = parse_cli_options(sub_args)
                 const code = await cmd_wrap(
                     project_root,
                     positionals[0],
@@ -102,8 +163,15 @@ async function main() {
                 break
             }
             case "run": {
+                const { options, positionals } = parse_cli_options(sub_args)
                 await cmd_run(project_root, positionals, options)
                 process.exit(0)
+                break
+            }
+            case "tail": {
+                const options = parse_tail_options(sub_args)
+                const code = await cmd_tail(project_root, options)
+                process.exit(code)
                 break
             }
             default:

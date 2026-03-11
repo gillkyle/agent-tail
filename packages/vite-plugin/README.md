@@ -26,6 +26,8 @@ Then in another terminal:
 
 ```bash
 tail -f tmp/logs/latest/browser.log
+# or
+agent-tail tail browser -f
 ```
 
 ## How it works

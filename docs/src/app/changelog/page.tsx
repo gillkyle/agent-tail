@@ -26,6 +26,16 @@ const badgeLabels: Record<ChangeType, string> = {
 
 const releases: Release[] = [
   {
+    version: "0.4.0",
+    date: "March 2026",
+    changes: [
+      { type: "added", text: <><code>agent-tail tail</code> &mdash; a drop-in wrapper around the system <code>tail</code> command that resolves the latest session and forwards normal tail flags like <code>-f</code> and <code>-n 100</code></> },
+      { type: "improved", text: <>Docs now use a simple install → wrap → tail quickstart flow and explicitly document global installation</> },
+      { type: "added", text: <>FAQ coverage for global-install log location and using a hidden folder such as <code>.agent-tail</code> via <code>--log-dir</code> / <code>logDir</code></> },
+      { type: "improved", text: <>Skills and package READMEs now document both direct <code>tail tmp/logs/latest/...</code> usage and the new <code>agent-tail tail</code> wrapper</> },
+    ],
+  },
+  {
     version: "0.3.9",
     date: "March 2026",
     changes: [

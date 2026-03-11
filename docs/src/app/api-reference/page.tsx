@@ -141,6 +141,18 @@ export default function APIReferencePage() {
           <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
             Sets up the session directory and <code>latest</code> symlink. Useful when other tools (like framework plugins) will write to the session.
           </p>
+
+          <h3><code>agent-tail tail</code></h3>
+          <p>Tail the latest session&apos;s logs via the system <code>tail</code> command:</p>
+          <CodeBlock
+            code={`agent-tail tail -f
+agent-tail tail browser -n 50
+agent-tail tail combined -f`}
+            language="bash"
+          />
+          <p style={{ fontSize: '0.8125rem', color: 'rgba(0,0,0,0.55)' }}>
+            With no query, it tails every <code>.log</code> file in the latest session. With a query, it looks for an exact <code>&lt;query&gt;.log</code> match first, then falls back to substring matches. Remaining flags are forwarded to <code>tail</code> unchanged.
+          </p>
         </section>
 
         <section>
@@ -178,6 +190,8 @@ export default function APIReferencePage() {
               <p className="prop-desc">Mute a service by name from terminal output and combined.log (repeatable). The service still runs and logs to its individual <code>&lt;name&gt;.log</code> file. Only applies to <code>agent-tail run</code>.</p>
             </div>
           </div>
+
+          <p style={{ marginTop: "1rem" }}><code>agent-tail tail</code> supports <code>--log-dir &lt;dir&gt;</code>, an optional log query, and any normal <code>tail</code> flags such as <code>-f</code> or <code>-n 100</code>.</p>
         </section>
 
         <section>
