@@ -14,6 +14,8 @@ Each service gets its own log file (`fe.log`, `api.log`) plus a `combined.log` w
 
 ```bash
 tail -f tmp/logs/latest/combined.log
+# or
+agent-tail tail combined -f
 ```
 
 ## CLI commands
@@ -21,6 +23,7 @@ tail -f tmp/logs/latest/combined.log
 - **`agent-tail run`** — spawn services with unified logging (recommended)
 - **`agent-tail init`** — create a session directory
 - **`agent-tail wrap`** — pipe a single command into an existing session
+- **`agent-tail tail`** — resolve the latest session, then forward to system `tail`
 
 ## Options
 

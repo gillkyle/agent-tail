@@ -1,7 +1,7 @@
 {
     "name": "next-plugin-agent-tail",
     "type": "module",
-    "version": "0.3.9",
+    "version": "0.4.0",
     "description": "Next.js plugin for agent-tail — pipes browser console logs to files on disk during development.",
     "license": "MIT",
     "repository": {

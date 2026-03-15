@@ -22,6 +22,8 @@ Then tail logs from another terminal:
 
 ```bash
 tail -f tmp/logs/latest/browser.log
+# or
+agent-tail tail browser -f
 ```
 
 ## Configuration

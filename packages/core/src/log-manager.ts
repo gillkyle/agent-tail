@@ -100,6 +100,17 @@ export class LogManager {
      * points to a valid directory, return it. Otherwise create a new session.
      */
     resolve_session(project_root: string): string {
+        const existing = this.find_session(project_root)
+        if (existing) return existing
+
+        const log_path = this.initialize(project_root)
+        return path.dirname(log_path)
+    }
+
+    /**
+     * Find the current session directory if one already exists.
+     */
+    find_session(project_root: string): string | null {
         const log_dir = path.resolve(project_root, this.options.logDir)
         const latest_link = path.join(log_dir, "latest")
 
@@ -112,8 +123,9 @@ export class LogManager {
                 // Pointer file fallback (Windows without symlink support)
                 target = fs.readFileSync(latest_link, "utf-8").trim()
             } else {
-                throw new Error("unexpected latest type")
+                return null
             }
+
             if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
                 return target
             }
@@ -121,8 +133,7 @@ export class LogManager {
             // no valid session yet
         }
 
-        const log_path = this.initialize(project_root)
-        return path.dirname(log_path)
+        return null
     }
 
     check_gitignore(project_root: string): void {

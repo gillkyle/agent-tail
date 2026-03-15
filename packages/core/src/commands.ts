@@ -54,6 +54,12 @@ export const DEFAULT_CLI_OPTIONS: CliOptions = {
     mutes: [],
 }
 
+export interface TailCommandOptions {
+    log_dir: string
+    query?: string
+    tail_args: string[]
+}
+
 export function create_manager(options: CliOptions): LogManager {
     return new LogManager(
         resolve_options({
@@ -86,9 +92,102 @@ export function resolve_session_dir(
     return manager.resolve_session(project_root)
 }
 
+export function find_session_dir(
+    project_root: string,
+    log_dir = DEFAULT_CLI_OPTIONS.log_dir
+): string | null {
+    const manager = create_manager({
+        ...DEFAULT_CLI_OPTIONS,
+        log_dir,
+    })
+    return manager.find_session(project_root)
+}
+
 export interface ServiceConfig {
     name: string
     command: string
+}
+
+function forward_signals_to_children(
+    children: Array<{ kill: (signal?: NodeJS.Signals | number) => boolean }>
+): () => void {
+    const signal_handlers = (["SIGINT", "SIGTERM"] as const).map((signal) => {
+        const handler = () => {
+            for (const child of children) {
+                child.kill(signal)
+            }
+        }
+        process.on(signal, handler)
+        return [signal, handler] as const
+    })
+
+    return () => {
+        for (const [signal, handler] of signal_handlers) {
+            process.off(signal, handler)
+        }
+    }
+}
+
+export function resolve_tail_paths(
+    project_root: string,
+    options: TailCommandOptions
+): string[] {
+    const session_dir = find_session_dir(project_root, options.log_dir)
+    const resolved_log_dir = path.resolve(project_root, options.log_dir)
+
+    if (!session_dir) {
+        throw new Error(
+            `No log session found in ${resolved_log_dir}. Run "agent-tail run", "agent-tail wrap", or start a framework plugin first.`
+        )
+    }
+
+    const log_files = fs
+        .readdirSync(session_dir, { withFileTypes: true })
+        .filter((entry) => entry.isFile() && entry.name.endsWith(".log"))
+        .map((entry) => entry.name)
+        .sort((a, b) => a.localeCompare(b))
+
+    if (log_files.length === 0) {
+        throw new Error(`No .log files found in ${session_dir}.`)
+    }
+
+    if (!options.query) {
+        return log_files.map((file_name) => path.join(session_dir, file_name))
+    }
+
+    const normalized_query = options.query.toLowerCase()
+    const exact_names = new Set([
+        normalized_query,
+        normalized_query.endsWith(".log")
+            ? normalized_query
+            : `${normalized_query}.log`,
+    ])
+
+    const exact_matches = log_files.filter((file_name) =>
+        exact_names.has(file_name.toLowerCase())
+    )
+
+    if (exact_matches.length > 0) {
+        return exact_matches.map((file_name) => path.join(session_dir, file_name))
+    }
+
+    const partial_matches = log_files.filter((file_name) => {
+        const normalized_name = file_name.toLowerCase()
+        return (
+            normalized_name.includes(normalized_query) ||
+            path.basename(normalized_name, ".log").includes(normalized_query)
+        )
+    })
+
+    if (partial_matches.length > 0) {
+        return partial_matches.map((file_name) =>
+            path.join(session_dir, file_name)
+        )
+    }
+
+    throw new Error(
+        `No logs found for "${options.query}" in ${session_dir}. Available logs: ${log_files.join(", ")}`
+    )
 }
 
 export function parse_service_configs(args: string[]): ServiceConfig[] {
@@ -103,6 +202,40 @@ export function parse_service_configs(args: string[]): ServiceConfig[] {
             name: arg.slice(0, colon_index).trim(),
             command: arg.slice(colon_index + 1).trim(),
         }
+    })
+}
+
+/**
+ * Tail the latest session's logs by forwarding to the system tail command.
+ */
+export function cmd_tail(
+    project_root: string,
+    options: TailCommandOptions
+): Promise<number> {
+    const log_paths = resolve_tail_paths(project_root, options)
+    const child = spawn("tail", [...options.tail_args, ...log_paths], {
+        stdio: "inherit",
+    })
+    const cleanup_signal_handlers = forward_signals_to_children([child])
+
+    return new Promise((resolve, reject) => {
+        child.on("close", (code) => {
+            cleanup_signal_handlers()
+            resolve(code ?? 0)
+        })
+
+        child.on("error", (err: NodeJS.ErrnoException) => {
+            cleanup_signal_handlers()
+            if (err.code === "ENOENT") {
+                reject(
+                    new Error(
+                        'System "tail" command not found. "agent-tail tail" requires a POSIX-style tail binary.'
+                    )
+                )
+                return
+            }
+            reject(err)
+        })
     })
 }
 
@@ -170,8 +303,6 @@ export function cmd_wrap(
         shell: true,
     })
 
-    const signal_handlers = new Map<"SIGINT" | "SIGTERM", () => void>()
-
     child.stdout?.on("data", (chunk: Buffer) => {
         process.stdout.write(chunk)
         write_to_logs(chunk, name, log_stream, combined_stream, options.excludes)
@@ -180,12 +311,11 @@ export function cmd_wrap(
         process.stderr.write(chunk)
         write_to_logs(chunk, name, log_stream, combined_stream, options.excludes)
     })
+    const cleanup_signal_handlers = forward_signals_to_children([child])
 
     return new Promise((resolve, reject) => {
         child.on("close", async (code) => {
-            for (const [signal, handler] of signal_handlers) {
-                process.off(signal, handler)
-            }
+            cleanup_signal_handlers()
 
             try {
                 await Promise.all([
@@ -199,9 +329,7 @@ export function cmd_wrap(
         })
 
         child.on("error", async (err) => {
-            for (const [signal, handler] of signal_handlers) {
-                process.off(signal, handler)
-            }
+            cleanup_signal_handlers()
 
             try {
                 await Promise.all([
@@ -214,14 +342,6 @@ export function cmd_wrap(
 
             reject(err)
         })
-
-        for (const signal of ["SIGINT", "SIGTERM"] as const) {
-            const handler = () => {
-                child.kill(signal)
-            }
-            signal_handlers.set(signal, handler)
-            process.on(signal, handler)
-        }
     })
 }
 
@@ -332,22 +452,14 @@ export function cmd_run(
         })
     })
 
-    const signal_handlers = new Map<"SIGINT" | "SIGTERM", () => void>()
-    for (const signal of ["SIGINT", "SIGTERM"] as const) {
-        const handler = () => {
-            for (const child of children) {
-                child.kill(signal)
-            }
-        }
-        signal_handlers.set(signal, handler)
-        process.on(signal, handler)
-    }
+    const cleanup_signal_handlers = forward_signals_to_children(children)
 
     return Promise.all(promises).then(async () => {
-        for (const [signal, handler] of signal_handlers) {
-            process.off(signal, handler)
-        }
+        cleanup_signal_handlers()
 
         await end_stream(combined_stream)
+    }, (error) => {
+        cleanup_signal_handlers()
+        throw error
     })
 }

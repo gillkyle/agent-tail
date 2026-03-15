@@ -25,7 +25,7 @@ const faqCategories: FAQCategory[] = [
 			{
 				question: "What is agent-tail?",
 				answer:
-					"agent-tail captures server output and browser console logs to plain text files on disk during development. The CLI wraps any command to capture stdout/stderr, and framework plugins for Vite and Next.js capture browser <code>console.*</code> calls. You can <code>tail -f</code> them in your terminal, and AI coding agents that already know how to read files and use <code>grep</code> can access them directly.",
+					"agent-tail captures server output and browser console logs to plain text files on disk during development. The CLI wraps any command to capture stdout/stderr, and framework plugins for Vite and Next.js capture browser <code>console.*</code> calls. You can read the files directly with <code>tail</code> or use <code>agent-tail tail -f</code> as a drop-in wrapper around it, and AI coding agents that already know how to read files and use <code>grep</code> can access them directly.",
 			},
 			{
 				question: "Which frameworks are supported?",
@@ -86,12 +86,22 @@ const faqCategories: FAQCategory[] = [
 			{
 				question: "Which package should I install?",
 				answer:
-					'Install <code>agent-tail</code> &mdash; it\'s the umbrella package that includes the CLI, Vite plugin, and Next.js plugin. One install, all features: <code>npm install -D agent-tail</code>.',
+					'Install <code>agent-tail</code> &mdash; it\'s the umbrella package that includes the CLI, Vite plugin, and Next.js plugin. One install, all features. Project install: <code>npm install -D agent-tail</code>. Global install is supported too: <code>npm install -g agent-tail</code>.',
+			},
+			{
+				question: "Where do logs go when I install agent-tail globally?",
+				answer:
+					'Global install only changes how you invoke the CLI. It does <em>not</em> move logs to a global location. By default, running <code>agent-tail</code> from a project writes to <code>tmp/logs/</code> relative to your current working directory, the same as a project-local install. If you want a different folder, pass <code>--log-dir</code> or set <code>logDir</code> in the Vite/Next.js plugin config.',
+			},
+			{
+				question: "Can I use a hidden folder like .agent-tail instead of tmp/logs?",
+				answer:
+					'Yes. The default is <code>tmp/logs</code>, but you can switch to a hidden folder such as <code>.agent-tail</code> by using <code>--log-dir .agent-tail</code> for the CLI and <code>logDir: ".agent-tail"</code> in the Vite or Next.js plugin config. Keep the setting consistent across the CLI and plugins so they all join the same session directory.',
 			},
 			{
 				question: "Can I install the smaller packages separately?",
 				answer:
-					"Yes. If you only need one piece, you can install it directly:<br/><br/><strong>agent-tail-core</strong> &mdash; CLI only (<code>agent-tail run</code>, <code>agent-tail wrap</code>, <code>agent-tail init</code>). Import from <code>\"agent-tail-core\"</code>.<br/><br/><strong>vite-plugin-agent-tail</strong> &mdash; Vite plugin only. Import from <code>\"vite-plugin-agent-tail\"</code>.<br/><br/><strong>next-plugin-agent-tail</strong> &mdash; Next.js plugin only. Import from <code>\"next-plugin-agent-tail\"</code>, <code>\"next-plugin-agent-tail/script\"</code>, <code>\"next-plugin-agent-tail/handler\"</code>.<br/><br/>The umbrella <code>agent-tail</code> package re-exports everything from these packages, so you only need one install.",
+					"Yes. If you only need one piece, you can install it directly:<br/><br/><strong>agent-tail-core</strong> &mdash; CLI only (<code>agent-tail run</code>, <code>agent-tail wrap</code>, <code>agent-tail init</code>, <code>agent-tail tail</code>). Import from <code>\"agent-tail-core\"</code>.<br/><br/><strong>vite-plugin-agent-tail</strong> &mdash; Vite plugin only. Import from <code>\"vite-plugin-agent-tail\"</code>.<br/><br/><strong>next-plugin-agent-tail</strong> &mdash; Next.js plugin only. Import from <code>\"next-plugin-agent-tail\"</code>, <code>\"next-plugin-agent-tail/script\"</code>, <code>\"next-plugin-agent-tail/handler\"</code>.<br/><br/>The umbrella <code>agent-tail</code> package re-exports everything from these packages, so you only need one install.",
 			},
 		],
 	},

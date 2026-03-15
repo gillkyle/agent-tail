@@ -10,10 +10,15 @@ Pipes browser console output and dev server stdout/stderr to plain log files on 
 ## Reading logs
 
 ```bash
+agent-tail tail -n 200
+agent-tail tail browser -n 50
+agent-tail tail -f
 grep -ri "error\|warn" tmp/logs/latest/
 tail -50 tmp/logs/latest/browser.log
 tail -f tmp/logs/latest/*.log
 ```
+
+Use plain `tail` if direct file paths are easier. Use `agent-tail tail` if you want the CLI to resolve the latest session for you and forward flags like `-f` and `-n 200` directly to `tail`.
 
 ## Log files
 
@@ -40,6 +45,9 @@ Levels are uppercased and padded to 7 characters (`LOG    `, `WARN   `, `ERROR  
 agent-tail run 'fe: npm run dev' 'api: uv run server'   # run multiple services
 agent-tail wrap api -- uv run fastapi-server              # add to existing session
 agent-tail init                                           # create session only
+tail -f tmp/logs/latest/*.log                             # tail directly by path
+agent-tail tail -f                                        # tail all logs in latest session
+agent-tail tail browser -n 50                             # tail one log in latest session
 ```
 
 **Flags** (work with all commands):
@@ -78,6 +86,7 @@ When debugging, check logs before guessing about runtime behavior:
 
     grep -ri "error\|warn" tmp/logs/latest/
     tail -50 tmp/logs/latest/browser.log
+    agent-tail tail browser -n 50
 ```
 
 ## .gitignore

@@ -36,9 +36,25 @@ agent-tail init
 
 Sets up the session directory and `latest` symlink. Useful when framework plugins or other tools will write to the session.
 
+## `agent-tail tail`
+
+Tail the latest session's logs without hard-coding `tmp/logs/latest/...` paths when you do not want to.
+
+Direct `tail` on the log files still works. `agent-tail tail` is the package-native wrapper: it resolves the right log file(s), then forwards the rest of the flags directly to system `tail`.
+
+```bash
+agent-tail tail -f
+agent-tail tail browser -n 50
+agent-tail tail combined -f
+```
+
+- With no query, it tails every `.log` file in the latest session.
+- With a query, it first looks for an exact `<query>.log` match, then falls back to substring matches in the latest session.
+- Any remaining args are passed to system `tail` unchanged.
+
 ## Flags
 
-All flags work with `run`, `wrap`, and `init`:
+Shared flags for `run`, `wrap`, and `init`:
 
 ```
 --log-dir <dir>       Log directory relative to cwd (default: tmp/logs)
@@ -46,6 +62,14 @@ All flags work with `run`, `wrap`, and `init`:
 --no-combined         Don't write to combined.log
 --exclude <pattern>   Exclude lines matching pattern (repeatable)
 --mute <name>         Mute a service from terminal and combined.log (repeatable)
+```
+
+`agent-tail tail` supports:
+
+```
+--log-dir <dir>       Log directory relative to cwd (default: tmp/logs)
+[query]               Optional log name match in the latest session
+[tail args...]        Forwarded directly to system tail (e.g. -f, -n 100)
 ```
 
 ### `--exclude`
@@ -93,4 +117,6 @@ npx agent-tail wrap api -- uv run fastapi-server
 
 # Terminal 3: Tail everything
 tail -f tmp/logs/latest/*.log
+# or
+agent-tail tail -f
 ```

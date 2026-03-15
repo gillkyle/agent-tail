@@ -42,6 +42,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 export { POST } from "agent-tail/next/handler"
 ```
 
+## 4. Tail the logs
+
+```bash
+tail -f tmp/logs/latest/browser.log
+# or
+agent-tail tail browser -f
+```
+
 ## Configuration
 
 Options are split between server-side (config wrapper) and client-side (script component).
