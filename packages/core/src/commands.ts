@@ -1,11 +1,42 @@
 import { spawn } from "node:child_process"
 import fs from "node:fs"
 import path from "node:path"
+import { strip_ansi_codes } from "./ansi"
 import { LogManager, SESSION_ENV_VAR } from "./log-manager"
 import { resolve_options } from "./types"
 import { should_exclude } from "./filter"
 
 const PREFIX = "\x1b[36m[agent-tail]\x1b[0m"
+
+function get_child_env(session_dir: string): NodeJS.ProcessEnv {
+    const env: NodeJS.ProcessEnv = {
+        ...process.env,
+        [SESSION_ENV_VAR]: session_dir,
+    }
+
+    if (env.NO_COLOR !== undefined || env.FORCE_COLOR === "0") {
+        return env
+    }
+
+    env.FORCE_COLOR = env.FORCE_COLOR ?? "1"
+    env.CLICOLOR_FORCE = env.CLICOLOR_FORCE ?? "1"
+    return env
+}
+
+function end_stream(stream: fs.WriteStream | null): Promise<void> {
+    if (!stream) return Promise.resolve()
+
+    return new Promise((resolve, reject) => {
+        stream.end((err?: Error | null) => {
+            if (err) {
+                reject(err)
+                return
+            }
+
+            resolve()
+        })
+    })
+}
 
 export interface CliOptions {
     log_dir: string
@@ -218,7 +249,7 @@ function write_to_logs(
     combined_stream: fs.WriteStream | null,
     excludes: string[] = []
 ): void {
-    const text = chunk.toString()
+    const text = strip_ansi_codes(chunk.toString())
     const lines = text.split(/\r?\n/)
     for (let i = 0; i < lines.length; i++) {
         if (lines[i].length > 0) {
@@ -268,7 +299,7 @@ export function cmd_wrap(
 
     const child = spawn(command.join(" "), {
         stdio: ["inherit", "pipe", "pipe"],
-        env: { ...process.env, [SESSION_ENV_VAR]: session_dir },
+        env: get_child_env(session_dir),
         shell: true,
     })
 
@@ -283,17 +314,32 @@ export function cmd_wrap(
     const cleanup_signal_handlers = forward_signals_to_children([child])
 
     return new Promise((resolve, reject) => {
-        child.on("close", (code) => {
+        child.on("close", async (code) => {
             cleanup_signal_handlers()
-            log_stream.end()
-            combined_stream?.end()
-            resolve(code ?? 0)
+
+            try {
+                await Promise.all([
+                    end_stream(log_stream),
+                    end_stream(combined_stream),
+                ])
+                resolve(code ?? 0)
+            } catch (err) {
+                reject(err)
+            }
         })
 
-        child.on("error", (err) => {
+        child.on("error", async (err) => {
             cleanup_signal_handlers()
-            log_stream.end()
-            combined_stream?.end()
+
+            try {
+                await Promise.all([
+                    end_stream(log_stream),
+                    end_stream(combined_stream),
+                ])
+            } catch {
+                // Ignore stream shutdown errors when surfacing child process error.
+            }
+
             reject(err)
         })
     })
@@ -354,7 +400,7 @@ export function cmd_run(
 
         const child = spawn(svc.command, {
             stdio: ["inherit", "pipe", "pipe"],
-            env: { ...process.env, [SESSION_ENV_VAR]: session_dir },
+            env: get_child_env(session_dir),
             shell: true,
         })
 
@@ -363,11 +409,12 @@ export function cmd_run(
             const lines = text.split(/\r?\n/)
             for (let j = 0; j < lines.length; j++) {
                 if (lines[j].length > 0) {
-                    if (options.excludes.length && should_exclude(lines[j], options.excludes)) continue
-                    log_stream.write(lines[j] + "\n")
+                    const log_line = strip_ansi_codes(lines[j])
+                    if (options.excludes.length && should_exclude(log_line, options.excludes)) continue
+                    log_stream.write(log_line + "\n")
                     if (!is_muted) {
                         target.write(`${tag} ${lines[j]}\n`)
-                        combined_stream?.write(`[${svc.name}] ${lines[j]}\n`)
+                        combined_stream?.write(`[${svc.name}] ${log_line}\n`)
                     }
                 } else if (j < lines.length - 1) {
                     log_stream.write("\n")
@@ -407,9 +454,10 @@ export function cmd_run(
 
     const cleanup_signal_handlers = forward_signals_to_children(children)
 
-    return Promise.all(promises).then(() => {
+    return Promise.all(promises).then(async () => {
         cleanup_signal_handlers()
-        combined_stream?.end()
+
+        await end_stream(combined_stream)
     }, (error) => {
         cleanup_signal_handlers()
         throw error
